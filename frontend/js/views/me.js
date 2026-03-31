@@ -8,6 +8,31 @@ function startOfToday() {
   return d
 }
 
+function isoDate(d) {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, "0")
+  const dd = String(d.getDate()).padStart(2, "0")
+  return `${y}-${m}-${dd}`
+}
+
+function safeDate(y, m, d) {
+  const dt = new Date(y, m, d)
+  dt.setHours(0, 0, 0, 0)
+  while (dt.getMonth() !== m) dt.setDate(dt.getDate() - 1)
+  return dt
+}
+
+function nextAnnualOccurrence(dayStr, today = startOfToday()) {
+  if (!dayStr) return null
+  const base = new Date(`${dayStr}T00:00:00`)
+  if (Number.isNaN(base.getTime())) return null
+  const m = base.getMonth()
+  const d = base.getDate()
+  let next = safeDate(today.getFullYear(), m, d)
+  if (next.getTime() < today.getTime()) next = safeDate(today.getFullYear() + 1, m, d)
+  return next
+}
+
 function daysDiff(a, b) {
   const ms = 24 * 60 * 60 * 1000
   return Math.floor((a.getTime() - b.getTime()) / ms)
@@ -108,6 +133,13 @@ export function initMeView(ctx) {
   const addAnniversaryBtn = document.getElementById("addAnniversaryBtn")
   const anniversaryList = document.getElementById("anniversaryList")
   const anniversaryEmpty = document.getElementById("anniversaryEmpty")
+
+  const anniversaryModalRoot = document.getElementById("anniversaryModalRoot")
+  const anniversaryModalTitle = document.getElementById("anniversaryModalTitle")
+  const anniversaryNameInput = document.getElementById("anniversaryNameInput")
+  const anniversaryDayInput = document.getElementById("anniversaryDayInput")
+  const anniversaryModalCancel = document.getElementById("anniversaryModalCancel")
+  const anniversaryModalOk = document.getElementById("anniversaryModalOk")
 
   let currentProfile = null
   let calendarCursor = (() => {
@@ -245,10 +277,16 @@ export function initMeView(ctx) {
     const list = Array.isArray(items) ? items : []
     const future = list
       .map((x) => {
-        const d = new Date(`${x.day}T00:00:00`)
-        return { ...x, _d: d, _daysLeft: Math.ceil((d.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)) }
+        const next = nextAnnualOccurrence(x.day, today)
+        if (!next) return null
+        return {
+          ...x,
+          _next: next,
+          _nextStr: isoDate(next),
+          _daysLeft: Math.ceil((next.getTime() - today.getTime()) / (24 * 60 * 60 * 1000))
+        }
       })
-      .filter((x) => !Number.isNaN(x._d.getTime()))
+      .filter(Boolean)
       .filter((x) => x._daysLeft >= 0)
       .sort((a, b) => a._daysLeft - b._daysLeft)
 
@@ -257,11 +295,94 @@ export function initMeView(ctx) {
 
     if (milestonePrimaryDays) milestonePrimaryDays.textContent = first ? String(first._daysLeft) : "—"
     if (milestonePrimaryDesc) {
-      milestonePrimaryDesc.textContent = first ? `距离${first.name}` : "—"
+      milestonePrimaryDesc.textContent = first ? `${first._nextStr} · 距离${first.name}` : "—"
     }
 
-    if (milestoneSecondaryName) milestoneSecondaryName.textContent = second ? second.name : "—"
+    if (milestoneSecondaryName) milestoneSecondaryName.textContent = second ? `${second._nextStr} · ${second.name}` : "—"
     if (milestoneSecondaryDays) milestoneSecondaryDays.textContent = second ? String(second._daysLeft) : "—"
+  }
+
+  function anniversaryModal({ title = "新增纪念日", initialName = "", initialDay = "" } = {}) {
+    if (
+      !anniversaryModalRoot ||
+      !anniversaryModalTitle ||
+      !anniversaryNameInput ||
+      !anniversaryDayInput ||
+      !anniversaryModalCancel ||
+      !anniversaryModalOk
+    ) {
+      return Promise.resolve(null)
+    }
+
+    anniversaryModalTitle.textContent = title
+    anniversaryNameInput.value = initialName
+    anniversaryDayInput.value = initialDay
+    anniversaryModalRoot.classList.remove("hidden")
+    setTimeout(() => anniversaryNameInput.focus(), 0)
+
+    return new Promise((resolve) => {
+      const cleanup = (v) => {
+        anniversaryModalRoot.classList.add("hidden")
+        anniversaryModalOk.removeEventListener("click", onOk)
+        anniversaryModalCancel.removeEventListener("click", onCancel)
+        anniversaryModalRoot.removeEventListener("click", onBackdrop)
+        anniversaryNameInput.removeEventListener("keydown", onNameKeydown)
+        anniversaryDayInput.removeEventListener("keydown", onDayKeydown)
+        window.removeEventListener("keydown", onEscape)
+        resolve(v)
+      }
+
+      const submit = () => {
+        const name = anniversaryNameInput.value.trim()
+        const day = anniversaryDayInput.value
+        if (!name) {
+          toast("请填写纪念日名称", { tone: "error" })
+          anniversaryNameInput.focus()
+          return
+        }
+        if (!day) {
+          toast("请选择日期", { tone: "error" })
+          anniversaryDayInput.focus()
+          return
+        }
+        cleanup({ name, day })
+      }
+
+      const onOk = (e) => {
+        e.preventDefault()
+        submit()
+      }
+      const onCancel = (e) => {
+        e.preventDefault()
+        cleanup(null)
+      }
+      const onBackdrop = (e) => {
+        const backdrop = anniversaryModalRoot.firstElementChild
+        if (e.target === anniversaryModalRoot || e.target === backdrop) cleanup(null)
+      }
+      const onNameKeydown = (e) => {
+        if (e.key !== "Enter") return
+        e.preventDefault()
+        submit()
+      }
+      const onDayKeydown = (e) => {
+        if (e.key !== "Enter") return
+        e.preventDefault()
+        submit()
+      }
+      const onEscape = (e) => {
+        if (e.key !== "Escape") return
+        e.preventDefault()
+        cleanup(null)
+      }
+
+      anniversaryModalOk.addEventListener("click", onOk)
+      anniversaryModalCancel.addEventListener("click", onCancel)
+      anniversaryModalRoot.addEventListener("click", onBackdrop)
+      anniversaryNameInput.addEventListener("keydown", onNameKeydown)
+      anniversaryDayInput.addEventListener("keydown", onDayKeydown)
+      window.addEventListener("keydown", onEscape)
+    })
   }
 
   function monthTitle(d) {
@@ -440,12 +561,10 @@ export function initMeView(ctx) {
 
       editBtn.addEventListener("click", async (e) => {
         e.preventDefault()
-        const name = window.prompt("纪念日名称", it.name)
-        if (name == null) return
-        const day = window.prompt("日期（YYYY-MM-DD）", it.day)
-        if (day == null) return
+        const v = await anniversaryModal({ title: "编辑纪念日", initialName: it.name, initialDay: it.day })
+        if (!v) return
         try {
-          await api.updateAnniversary(it.id, { name: name.trim(), day })
+          await api.updateAnniversary(it.id, { name: v.name, day: v.day })
           toast("已更新", { tone: "success" })
           await refreshAnniversaries()
         } catch (err) {
@@ -483,12 +602,10 @@ export function initMeView(ctx) {
 
   addAnniversaryBtn.addEventListener("click", async (e) => {
     e.preventDefault()
-    const name = window.prompt("纪念日名称", "")
-    if (!name) return
-    const day = window.prompt("日期（YYYY-MM-DD）", "")
-    if (!day) return
+    const v = await anniversaryModal()
+    if (!v) return
     try {
-      await api.createAnniversary(name.trim(), day)
+      await api.createAnniversary(v.name, v.day)
       toast("已新增", { tone: "success" })
       await refreshAnniversaries()
     } catch (err) {

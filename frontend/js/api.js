@@ -2,8 +2,19 @@ import { DEFAULT_API_BASE, STORAGE_KEYS } from "./constants.js"
 import { settingsStore, tokenStore } from "./storage.js"
 
 function getApiBase() {
-  const base = settingsStore.getApiBase() || globalThis?.location?.origin || DEFAULT_API_BASE
-  return String(base).replace(/\/$/, "")
+  const fromSettings = settingsStore.getApiBase()
+  if (fromSettings) return String(fromSettings).replace(/\/$/, "")
+
+  const origin = globalThis?.location?.origin || ""
+  try {
+    const u = new URL(origin)
+    const d = new URL(DEFAULT_API_BASE)
+    if ((u.hostname === "localhost" || u.hostname === "127.0.0.1") && u.port && u.port !== d.port) {
+      return String(DEFAULT_API_BASE).replace(/\/$/, "")
+    }
+  } catch {}
+
+  return String(origin || DEFAULT_API_BASE).replace(/\/$/, "")
 }
 
 function withAuthHeaders(headers = {}) {
