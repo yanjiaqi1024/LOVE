@@ -4,6 +4,20 @@ const DB_NAME = "couple_space"
 const DB_VERSION = 1
 const STORE_PHOTOS = "photos"
 
+function genUUID() {
+  const c = globalThis.crypto
+  if (c?.randomUUID) return c.randomUUID()
+  if (c?.getRandomValues) {
+    const b = new Uint8Array(16)
+    c.getRandomValues(b)
+    b[6] = (b[6] & 0x0f) | 0x40
+    b[8] = (b[8] & 0x3f) | 0x80
+    const hex = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("")
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`
+  }
+  return `id_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`
+}
+
 function openDb() {
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, DB_VERSION)
@@ -70,7 +84,7 @@ export const photoStore = {
     const store = tx.objectStore(STORE_PHOTOS)
     const now = Date.now()
     const items = Array.from(files).map((f, i) => ({
-      id: crypto.randomUUID(),
+      id: genUUID(),
       name: f.name || "",
       type: f.type || "image/*",
       blob: f,
@@ -120,4 +134,3 @@ export const photoStore = {
     db.close()
   }
 }
-

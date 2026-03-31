@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UUID Smoke</title>
+  </head>
+  <body>
+    <pre id="out">running...</pre>
+    <script type="module">
+      import { photoStore } from "../js/storage.js"
+
+      const out = document.getElementById("out")
+
+      try {
+        const file = new File([new Blob(["test"], { type: "image/jpeg" })], "test.jpg", { type: "image/jpeg" })
+        const added = await photoStore.addMany([file])
+        const listed = await photoStore.list()
+        out.textContent = JSON.stringify({ added, listedCount: listed.length, hasRandomUUID: !!globalThis.crypto?.randomUUID }, null, 2)
+      } catch (e) {
+        out.textContent = String(e && (e.stack || e.message || e))
+      }
+    </script>
+  </body>
+</html>
