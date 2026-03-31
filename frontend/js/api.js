@@ -2,7 +2,8 @@ import { DEFAULT_API_BASE, STORAGE_KEYS } from "./constants.js"
 import { settingsStore, tokenStore } from "./storage.js"
 
 function getApiBase() {
-  return settingsStore.getApiBase() || DEFAULT_API_BASE
+  const base = settingsStore.getApiBase() || globalThis?.location?.origin || DEFAULT_API_BASE
+  return String(base).replace(/\/$/, "")
 }
 
 function withAuthHeaders(headers = {}) {
