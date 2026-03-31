@@ -1,0 +1,7 @@
+.git
+.trae
+**/__pycache__
+**/*.pyc
+backend/app.db
+backend/*.db
+.env

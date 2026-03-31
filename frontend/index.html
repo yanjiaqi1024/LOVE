@@ -1,0 +1,584 @@
+<!doctype html>
+<html class="light" lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>情侣空间</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-background": "#1d1b1d",
+              "surface-container-highest": "#e7e1e3",
+              "surface-container-low": "#f8f2f4",
+              "surface-dim": "#ded9db",
+              "tertiary-fixed-dim": "#debfc2",
+              surface: "#fef8fa",
+              "surface-tint": "#78555e",
+              "surface-container": "#f2ecee",
+              "on-tertiary-container": "#735b5d",
+              "primary-fixed-dim": "#e7bbc6",
+              "on-tertiary-fixed": "#281719",
+              "on-primary-fixed-variant": "#5e3e47",
+              "on-primary-fixed": "#2d141c",
+              outline: "#817476",
+              "surface-container-lowest": "#ffffff",
+              primary: "#78555e",
+              "outline-variant": "#d3c3c5",
+              "tertiary-fixed": "#fbdbde",
+              "on-surface-variant": "#4f4446",
+              "surface-bright": "#fef8fa",
+              "inverse-on-surface": "#f5eff1",
+              "primary-container": "#ffd1dc",
+              background: "#fef8fa",
+              secondary: "#5c5d6e",
+              "primary-fixed": "#ffd9e2",
+              "on-secondary": "#ffffff",
+              "secondary-fixed": "#e1e1f5",
+              "error-container": "#ffdad6",
+              "tertiary-container": "#f5d5d8",
+              "on-secondary-fixed-variant": "#444655",
+              tertiary: "#70585b",
+              "secondary-fixed-dim": "#c5c5d8",
+              "surface-variant": "#e7e1e3",
+              "on-tertiary": "#ffffff",
+              "on-primary-container": "#7a5761",
+              "on-primary": "#ffffff",
+              "surface-container-high": "#ece7e9",
+              "on-tertiary-fixed-variant": "#574144",
+              "secondary-container": "#e1e1f5",
+              "on-error-container": "#93000a",
+              "inverse-primary": "#e7bbc6",
+              "on-secondary-container": "#626374",
+              "on-secondary-fixed": "#191b29",
+              "inverse-surface": "#323031",
+              error: "#ba1a1a",
+              "on-surface": "#1d1b1d",
+              "on-error": "#ffffff"
+            },
+            fontFamily: {
+              headline: ["Noto Serif"],
+              body: ["Plus Jakarta Sans"],
+              label: ["Plus Jakarta Sans"]
+            },
+            borderRadius: { DEFAULT: "1rem", lg: "2rem", xl: "3rem", full: "9999px" }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="./css/styles.css" />
+  </head>
+  <body class="text-on-surface select-none bg-background">
+    <div id="fileHint" class="fixed inset-0 z-[80] hidden">
+      <div class="absolute inset-0 bg-black/40"></div>
+      <div class="absolute inset-0 flex items-center justify-center p-6">
+        <div class="w-full max-w-md rounded-xl bg-surface/90 border border-outline-variant/30 shadow-[0px_12px_32px_rgba(120,85,94,0.10)] backdrop-blur-xl p-5">
+          <div class="text-lg font-semibold">需要用本地服务打开</div>
+          <div class="mt-2 text-sm text-slate-600 leading-relaxed">
+            你现在是通过 file:// 直接打开的，浏览器会阻止模块脚本，导致按钮“没反应”。请用下面任一方式打开：
+          </div>
+          <div class="mt-3 text-sm font-medium">
+            方式 1：启动后端后访问 http://localhost:8000/
+          </div>
+          <div class="mt-1 text-sm font-medium">
+            方式 2：在 frontend/ 下运行 python3 -m http.server 5174 后访问 http://localhost:5174/
+          </div>
+          <button id="fileHintOk" class="mt-4 w-full px-4 py-3 rounded-lg bg-primary text-on-primary shadow-[0px_8px_24px_rgba(120,85,94,0.12)] font-bold active:scale-95 transition-all duration-300">
+            我知道了
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="app" class="min-h-screen">
+      <header id="topAppBar" class="fixed top-0 w-full z-50 bg-surface/70 dark:bg-zinc-900/70 backdrop-blur-xl shadow-[0px_12px_32px_rgba(120,85,94,0.08)] flex justify-between items-center px-6 py-4 w-full">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden border-2 border-primary/10">
+            <img
+              id="headerAvatarImg"
+              class="w-full h-full object-cover"
+              alt="Couple avatar"
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXJlAmUULcxvixQI9KQKWHYkgxoDFnNtqnnnEGwx0W6ZJPrSj4av3SWlgl4NLB-3D7Q4h0wWf892sRbgXBKnhYptOhk_QBjdlS5Uxdh0x8rYR8w5L7IChtvZtPI0s-qpJ4TmLPwzHjRT3Cr95XjfMvcnik-tGtiuG7RvlxbxDE7RrH_qF9Iqi5ux0hN0m419hQQNhJ_d9QfjhxSFlbnc5sg3dOZDdRqPz5uFHX0kgwRFwC7Ey4HkMSMd8PZvGxGzLmf3SdGoF3FZs"
+            />
+          </div>
+          <h1 id="headerTitle" class="font-headline text-lg font-bold text-[#78555e] tracking-tight">Our Sanctuary</h1>
+        </div>
+        <button id="settingsBtn" class="hidden text-[#5c5d6e] hover:opacity-80 transition-opacity active:scale-95 duration-200" aria-label="Settings">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;">settings</span>
+        </button>
+      </header>
+
+      <main class="pt-24 pb-32 px-5 space-y-8">
+        <section id="view-login" class="view relative -mt-24 -mb-32 min-h-[100dvh] flex items-center justify-center p-6 selection:bg-primary-container selection:text-on-primary-container">
+          <div class="fixed inset-0 -z-10 overflow-hidden">
+            <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary-container/30 blur-[120px]"></div>
+            <div class="absolute bottom-[-5%] right-[-5%] w-[50%] h-[50%] rounded-full bg-secondary-container/40 blur-[150px]"></div>
+            <div
+              class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-[0.03] pointer-events-none"
+              style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBipXZ_P9GIXmEeYcdw7a-zbpdd9uu7e1YYJj3RA4ArErGBXo-mqvqMIPW5OqeJ0mNXTHUnwtdw-lsQ4G8T9NK3X21ksnboj_pWJhyG3Lx5hvULtf2vGUUItE6TxVxSej3y-wIqLVzSzT6JUduraKg3Awj6Vc3IcHxZsMzDAfFmNHyoBq59C4V66F6R6XRg6uCluzQwbVt0M1T7CuA9bq5iVcrCVlzrc0cNAsS5QwojXwWnRXhHjv3wx_zDJW5FlgVWco0VS0Wr6cM');"
+            ></div>
+          </div>
+
+          <main class="w-full max-w-[480px]">
+            <header class="text-center mb-12">
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary-container text-primary mb-6 shadow-[0px_12px_32px_rgba(120,85,94,0.08)]">
+                <span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1;">favorite</span>
+              </div>
+              <h1 class="font-headline text-4xl font-bold text-primary tracking-tight mb-3">欢迎回到我们的小窝</h1>
+              <p class="text-on-surface-variant font-body text-lg leading-relaxed px-4">进入专属空间，继续书写我们的故事。</p>
+            </header>
+
+            <div class="glass-panel rounded-xl p-8 md:p-10 shadow-[0px_12px_32px_rgba(120,85,94,0.08)]">
+              <form class="space-y-6">
+                <div class="space-y-2">
+                  <label class="block font-label text-sm font-semibold text-secondary ml-1" for="authUsername">用户名或邮箱</label>
+                  <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">person</span>
+                    <input
+                      id="authUsername"
+                      name="username"
+                      type="text"
+                      class="w-full pl-12 pr-4 py-4 bg-surface-container-highest border-none rounded-md focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/50 transition-all text-on-surface"
+                      placeholder="用户名或邮箱"
+                    />
+                  </div>
+                </div>
+
+                <div class="space-y-2">
+                  <div class="flex justify-between items-center ml-1">
+                    <label class="block font-label text-sm font-semibold text-secondary" for="authPassword">密码</label>
+                    <a class="text-xs font-semibold text-primary hover:underline transition-all" href="javascript:void(0)">忘记密码？</a>
+                  </div>
+                  <div class="relative group">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">lock</span>
+                    <input
+                      id="authPassword"
+                      name="password"
+                      type="password"
+                      class="w-full pl-12 pr-12 py-4 bg-surface-container-highest border-none rounded-md focus:ring-2 focus:ring-primary/20 placeholder:text-on-surface-variant/50 transition-all text-on-surface"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      id="togglePasswordBtn"
+                      class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-primary transition-colors"
+                      type="button"
+                      aria-label="Toggle password visibility"
+                    >
+                      <span id="togglePasswordIcon" class="material-symbols-outlined text-sm">visibility</span>
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  id="loginBtn"
+                  class="w-full bg-gradient-to-br from-primary to-[#8d6671] text-on-primary py-4 rounded-lg font-label font-bold text-lg shadow-[0px_8px_24px_rgba(120,85,94,0.2)] hover:shadow-[0px_12px_32px_rgba(120,85,94,0.3)] hover:-translate-y-0.5 active:scale-[0.98] transition-all"
+                  type="button"
+                >
+                  登录空间
+                </button>
+              </form>
+
+              <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center">
+                  <div class="w-full border-t border-outline-variant/30"></div>
+                </div>
+                <div class="relative flex justify-center text-xs uppercase tracking-widest font-bold">
+                  <span class="bg-white/0 px-4 text-on-surface-variant">或 加入我们的世界</span>
+                </div>
+              </div>
+
+              <button
+                id="registerBtn"
+                class="w-full bg-surface-container-low text-primary py-4 rounded-lg font-label font-bold text-lg border border-primary/10 hover:bg-primary-container/30 active:scale-[0.98] transition-all"
+                type="button"
+              >
+                开启我们的空间
+              </button>
+            </div>
+
+            <footer class="mt-12 text-center">
+              <div class="flex items-center justify-center gap-2 text-primary/40 mb-4">
+                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">circle</span>
+                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                <span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">circle</span>
+              </div>
+              <p class="font-headline italic text-on-surface-variant/80 text-sm">“爱在此间，回忆永恒。”</p>
+            </footer>
+          </main>
+        </section>
+
+        <section id="view-home" class="view hidden space-y-8 max-w-md mx-auto">
+          <section class="relative overflow-hidden rounded-xl p-8 bg-gradient-to-br from-primary to-primary-container text-white shadow-[0px_12px_32px_rgba(120,85,94,0.15)]">
+            <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
+            <div class="relative z-10 flex flex-col items-center text-center">
+              <span class="font-label text-xs uppercase tracking-[0.2em] opacity-80 mb-2">Since the day we met</span>
+              <div class="flex items-baseline gap-2">
+                <span id="loveDays" class="font-headline text-6xl font-bold tracking-tighter">0</span>
+                <span class="font-headline text-2xl opacity-90">Days</span>
+              </div>
+              <div class="mt-6 px-4 py-2 bg-white/20 backdrop-blur-md rounded-full flex items-center gap-2">
+                <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                <span id="loveDateBadge" class="font-label text-xs font-semibold">—</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="bg-surface-container-low rounded-xl p-6 relative">
+            <div class="mb-6">
+              <h3 class="font-headline text-xl text-primary font-bold text-center mb-6">Daily Check-in</h3>
+              <div class="flex justify-around items-center mb-8 gap-4">
+                <div class="flex flex-col items-center gap-2">
+                  <div class="relative">
+                    <div class="w-14 h-14 rounded-full border-2 border-primary/20 overflow-hidden bg-primary-container">
+                      <img id="homeAvatarYourImg" alt="Partner 1" class="w-full h-full object-cover" />
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-1">
+                      <span class="material-symbols-outlined text-[10px] block" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <p id="homeNameYour" class="font-label text-[10px] uppercase tracking-wider text-secondary font-bold">Alex</p>
+                    <p class="font-headline text-sm text-primary font-bold"><span id="streakDays">0</span> Days</p>
+                  </div>
+                </div>
+
+                <div class="h-12 w-[1px] bg-outline-variant/30 self-center"></div>
+
+                <div class="flex flex-col items-center gap-2">
+                  <div class="relative">
+                    <div class="w-14 h-14 rounded-full border-2 border-primary/20 overflow-hidden bg-tertiary-container">
+                      <img id="homeAvatarPartnerImg" alt="Partner 2" class="w-full h-full object-cover" />
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 bg-primary text-white rounded-full p-1">
+                      <span class="material-symbols-outlined text-[10px] block" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <p id="homeNamePartner" class="font-label text-[10px] uppercase tracking-wider text-secondary font-bold">Sarah</p>
+                    <p class="font-headline text-sm text-primary font-bold"><span id="totalCheckins">0</span> Days</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-center gap-4">
+              <button class="w-full py-4 bg-primary text-on-primary rounded-lg font-bold flex items-center justify-center gap-3 shadow-[0px_8px_24px_rgba(120,85,94,0.12)] active:scale-95 transition-all duration-300" id="checkinBtn">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">fingerprint</span>
+                <span id="checkinBtnText">Check-in for Today</span>
+              </button>
+              <p class="font-label text-[10px] text-secondary tracking-widest uppercase opacity-60 text-center" id="checkinMeta"></p>
+            </div>
+          </section>
+
+          <section class="py-4">
+            <div class="relative px-8 py-10 rounded-xl bg-surface-container-highest/30 border border-outline-variant/15 text-center">
+              <span class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-surface flex items-center justify-center rounded-full text-primary-container shadow-sm">
+                <span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">format_quote</span>
+              </span>
+              <p id="quoteText" class="font-headline text-lg italic text-on-surface leading-relaxed"></p>
+              <p id="quoteAuthor" class="font-label text-xs mt-6 text-secondary uppercase tracking-widest font-semibold">—</p>
+              <button id="nextQuoteBtn" class="mt-6 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-surface-container-lowest border border-outline-variant/25 text-primary font-bold active:scale-95 transition-all duration-300">
+                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">autorenew</span>
+                Refresh
+              </button>
+            </div>
+          </section>
+
+          <section class="grid grid-cols-2 gap-4">
+            <div class="col-span-1 aspect-square rounded-xl overflow-hidden shadow-sm">
+              <img
+                class="w-full h-full object-cover"
+                alt="Memory"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRFVyZgnfH_TdIQ73UCEnnjnh1DDI748EfCxvy6zeHzLyvF42g3bCHhvPQVEuj1wFrwJFQDPYUf7delKIvrRvESWVrR19cZGMtlCwOKd2cUYF9V26b4Lo3C3Q16L2UPUwnSpktuK19YcJgPvpmHB02g1UIrrJIBVRo-4lrZm-IMUtpzNdhSynQRrgRkzHN3HTvyTBUu27pNNNJ5oc_uQp55wC1CCJcVQa2tAQ4JrK7fg8s7R3Vwl6XJ4PsuM8CdG9tCfRnXewpmY4"
+              />
+            </div>
+            <div class="col-span-1 space-y-4">
+              <div class="h-[calc(50%-0.5rem)] bg-secondary-container rounded-xl flex flex-col items-center justify-center p-4 text-center">
+                <span class="material-symbols-outlined text-primary mb-1" style="font-variation-settings: 'FILL' 0;">celebration</span>
+                <span class="font-label text-[10px] uppercase tracking-tighter text-on-secondary-container font-bold">Next Milestone</span>
+                <span id="nextMilestoneName" class="font-body text-xs text-on-secondary-container">—</span>
+              </div>
+              <div class="h-[calc(50%-0.5rem)] bg-surface-container-highest rounded-xl flex flex-col items-center justify-center p-4 text-center">
+                <span class="material-symbols-outlined text-primary mb-1" style="font-variation-settings: 'FILL' 0;">event</span>
+                <span class="font-label text-[10px] uppercase tracking-tighter text-on-surface-variant font-bold">Countdown</span>
+                <span class="font-headline text-sm text-primary font-bold"><span id="nextMilestoneDaysLeft">—</span> Days Left</span>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section id="view-album" class="view hidden max-w-5xl mx-auto">
+          <section class="mb-12">
+            <span class="font-label text-secondary text-[10px] uppercase tracking-[0.2em] mb-2 block">珍藏集</span>
+            <h2 class="font-headline text-4xl text-primary leading-tight">我们的回忆</h2>
+            <p class="text-on-surface-variant mt-3 max-w-xs">为每一个微笑和宁静瞬间打造的数字港湾。</p>
+          </section>
+
+          <section class="mb-12">
+            <div class="relative group">
+              <div class="absolute -inset-1 bg-gradient-to-r from-primary to-primary-container rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+              <div class="relative bg-surface-container-lowest border-2 border-dashed border-outline-variant/30 rounded-xl p-8 flex flex-col items-center justify-center text-center transition-all hover:bg-surface-container-low">
+                <div class="w-16 h-16 bg-primary-container rounded-full flex items-center justify-center mb-4 shadow-sm">
+                  <span class="material-symbols-outlined text-primary text-3xl">add_photo_alternate</span>
+                </div>
+                <h3 class="font-headline text-xl text-primary mb-1">添加新章节</h3>
+                <p class="text-on-surface-variant text-sm mb-6">定格值得珍藏的一刻。</p>
+                <button id="albumUploadBtn" class="bg-primary text-on-primary px-8 py-3 rounded-lg font-label font-semibold shadow-lg hover:opacity-90 active:scale-95 transition-all">
+                  上传照片
+                </button>
+                <input id="photoInput" type="file" accept="image/*" multiple class="hidden" />
+              </div>
+            </div>
+          </section>
+
+          <div id="albumGrid" class="gallery-waterfall"></div>
+          <div id="albumEmpty" class="text-center text-sm text-secondary/80 hidden mt-6">还没有照片，先上传一张吧</div>
+        </section>
+
+        <section id="view-me" class="view hidden space-y-10 max-w-2xl mx-auto">
+          <section class="flex flex-col items-center text-center space-y-6">
+            <div class="relative flex items-center justify-center -space-x-4">
+              <div class="w-28 h-28 rounded-xl overflow-hidden shadow-xl rotate-[-3deg] border-4 border-surface-container-lowest bg-primary-container">
+                <img id="meAvatarYourImg" class="w-full h-full object-cover" alt="Partner 1" />
+              </div>
+              <div class="z-10 bg-primary-container text-on-primary-container p-3 rounded-full shadow-lg">
+                <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+              </div>
+              <div class="w-28 h-28 rounded-xl overflow-hidden shadow-xl rotate-[3deg] border-4 border-surface-container-lowest bg-tertiary-container">
+                <img id="meAvatarPartnerImg" class="w-full h-full object-cover" alt="Partner 2" />
+              </div>
+            </div>
+            <div class="space-y-1">
+              <h1 id="meCoupleNames" class="font-headline text-2xl font-bold text-primary tracking-tight">—</h1>
+              <p id="meSinceText" class="text-secondary font-label text-sm tracking-widest uppercase">—</p>
+            </div>
+          </section>
+
+          <section class="space-y-6">
+            <div class="flex items-center gap-4">
+              <div class="h-[1px] flex-grow bg-outline-variant opacity-30"></div>
+              <h2 class="font-headline text-xl italic text-primary">我们的爱情故事</h2>
+              <div class="h-[1px] flex-grow bg-outline-variant opacity-30"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="bg-surface-container-low p-6 rounded-xl flex flex-col items-center text-center space-y-2">
+                <span class="text-secondary-container bg-secondary px-2 py-0.5 rounded-full text-[10px] tracking-tighter uppercase font-bold">初次见面</span>
+                <span id="meMetDateText" class="font-headline text-2xl text-primary">--.--.--</span>
+                <p id="meMetNote" class="text-on-surface-variant text-xs font-body">—</p>
+              </div>
+              <div class="bg-surface-container-low p-6 rounded-xl flex flex-col items-center text-center space-y-2">
+                <span class="text-primary-container bg-primary px-2 py-0.5 rounded-full text-[10px] tracking-tighter uppercase font-bold">恋爱纪念日</span>
+                <span id="meLoveDateText" class="font-headline text-2xl text-primary">--.--.--</span>
+                <p id="meLoveNote" class="text-on-surface-variant text-xs font-body">—</p>
+              </div>
+            </div>
+
+            <div class="relative bg-surface-container-highest/30 p-8 rounded-xl border border-outline-variant/10">
+              <span class="absolute top-4 left-4 text-primary/20 font-headline text-6xl leading-none">“</span>
+              <p id="meSloganText" class="font-headline text-lg text-on-surface leading-relaxed text-center px-4 italic"></p>
+              <span class="absolute bottom-4 right-4 text-primary/20 font-headline text-6xl leading-none rotate-180">“</span>
+            </div>
+          </section>
+
+          <section class="space-y-4">
+            <h3 class="font-label title-sm uppercase tracking-widest text-secondary px-2">即将到来的里程碑</h3>
+            <div class="bg-primary text-on-primary p-6 rounded-xl shadow-[0px_12px_32px_rgba(120,85,94,0.12)] flex items-center justify-between overflow-hidden relative">
+              <div class="z-10 space-y-1">
+                <p class="text-primary-container font-label text-[10px] uppercase tracking-[0.2em] font-bold">重要时刻</p>
+                <h4 class="font-headline text-3xl"><span id="milestonePrimaryDays">—</span>天</h4>
+                <p id="milestonePrimaryDesc" class="text-on-primary/80 text-sm">—</p>
+              </div>
+              <div class="z-10 w-20 h-20 flex items-center justify-center bg-white/10 rounded-full backdrop-blur-md">
+                <span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">celebration</span>
+              </div>
+              <div class="absolute -right-8 -top-8 w-32 h-32 bg-primary-container/10 rounded-full"></div>
+            </div>
+
+            <div class="bg-surface-container-low p-5 rounded-xl flex items-center gap-4">
+              <div class="w-12 h-12 bg-secondary-container rounded-full flex items-center justify-center text-on-secondary-container">
+                <span class="material-symbols-outlined">event</span>
+              </div>
+              <div class="flex-grow">
+                <p id="milestoneSecondaryName" class="text-xs text-secondary font-bold uppercase tracking-wider">—</p>
+                <p class="font-headline text-on-surface">还剩 <span id="milestoneSecondaryDays">—</span> 天</p>
+              </div>
+              <button id="milestoneSecondaryAction" class="text-primary" aria-label="Milestone">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="space-y-4">
+            <h3 class="font-label title-sm uppercase tracking-widest text-secondary px-2">爱意足迹</h3>
+            <div class="bg-surface-container-low p-6 rounded-xl">
+              <div class="flex justify-between items-center mb-6">
+                <p class="font-headline text-primary text-lg" id="currentMonthYear">—</p>
+                <div class="flex gap-1">
+                  <button id="calPrevBtn" class="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:bg-surface-container transition-colors" aria-label="Prev month">
+                    <span class="material-symbols-outlined text-sm">chevron_left</span>
+                  </button>
+                  <button id="calNextBtn" class="w-8 h-8 rounded-full flex items-center justify-center text-secondary hover:bg-surface-container transition-colors" aria-label="Next month">
+                    <span class="material-symbols-outlined text-sm">chevron_right</span>
+                  </button>
+                </div>
+              </div>
+              <div class="grid grid-cols-7 gap-y-4 text-center mb-2">
+                <span class="text-[10px] text-secondary/60 uppercase font-bold">一</span>
+                <span class="text-[10px] text-secondary/60 uppercase font-bold">二</span>
+                <span class="text-[10px] text-secondary/60 uppercase font-bold">三</span>
+                <span class="text-[10px] text-secondary/60 uppercase font-bold">四</span>
+                <span class="text-[10px] text-secondary/60 uppercase font-bold">五</span>
+                <span class="text-[10px] text-secondary/60 uppercase font-bold">六</span>
+                <span class="text-[10px] text-secondary/60 uppercase font-bold">日</span>
+              </div>
+              <div class="grid grid-cols-7 gap-y-4 text-center" id="calendarGrid"></div>
+
+              <button class="w-full mt-6 py-3 bg-primary-container text-on-primary-container rounded-full text-xs font-bold uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2" id="checkInBtn">
+                <span class="material-symbols-outlined text-sm">draw</span>
+                记录今日心情
+              </button>
+            </div>
+          </section>
+
+          <section class="grid grid-cols-3 gap-3">
+            <button id="mePreviewA" class="col-span-2 h-48 rounded-xl overflow-hidden bg-surface-container-lowest" aria-label="Preview A">
+              <img
+                id="mePreviewAImg"
+                class="w-full h-full object-cover"
+                alt="Preview A"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTE_Lm6eVCCxbZr28RQKSaZEOfLQHdADwLYX1idxPCF_B6cE9eQ_2NVY6EN5H_EjB368MsjhZrvH1Upvd_j3362DEeKAZsPnlUPFRNaETcNZH0woz8Zb9KDZcUCzM0JnA0ECFN3D6vBrhtKf_H-4e44RoKB5gjhzM5fOPpZ1XPicNTw06fYJK6KzdUD1Fq_8I7Iwbeap-sJWFvCZH9kl3RyYsv9G2JpjrhAod4Tg6OiYtrqkvEFwzRUto2ub2LSpRTxybEj7aG9zs"
+              />
+            </button>
+            <button id="mePreviewB" class="col-span-1 h-48 rounded-xl overflow-hidden bg-surface-container-lowest" aria-label="Preview B">
+              <img
+                id="mePreviewBImg"
+                class="w-full h-full object-cover"
+                alt="Preview B"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe15eAD4kf_DM_WYbqGH-iEPsPm7aUwb9z4REljzuBY3Ob2jcJaQGzLOymjFLgYhCmj5DjQhrEVUVUNnF1J9HqEFABzbpJzzivt7Gyk8Vl9QQaApNE9b_nT4YL-Py7YWIMD80ufujOl8UaKieLu7ffpCIgETHhdM0gR8RoDSXyk1Dm5Ru3XyxBGTlYAu56laToz2p8Ih7CvpIbfCBJouoGB4W6VQ7zlIii1ggtGZP6oKwrD51Mhj4PZ3krBGoH8EuPsdrCcSKY11Y"
+              />
+            </button>
+          </section>
+
+          <details class="bg-surface-container-low rounded-xl p-6">
+            <summary class="cursor-pointer font-headline text-lg font-bold text-primary select-none">编辑资料</summary>
+            <div class="mt-4 grid grid-cols-2 gap-4">
+              <label class="block">
+                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">我的昵称</div>
+                <input id="inputYourNickname" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" />
+              </label>
+              <label class="block">
+                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">TA 的昵称</div>
+                <input id="inputPartnerNickname" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" />
+              </label>
+              <label class="block">
+                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">相识日</div>
+                <input id="inputMetDate" type="date" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" />
+              </label>
+              <label class="block">
+                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">在一起日期</div>
+                <input id="inputTogetherDate" type="date" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" />
+              </label>
+              <label class="block col-span-2">
+                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">恋爱宣言</div>
+                <input id="inputSlogan" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" placeholder="写一句你们的宣言" />
+              </label>
+              <label class="block col-span-2">
+                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">我的头像链接</div>
+                <input id="inputYourAvatar" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" placeholder="https://..." />
+              </label>
+              <label class="block col-span-2">
+                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">TA 的头像链接</div>
+                <input id="inputPartnerAvatar" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" placeholder="https://..." />
+              </label>
+            </div>
+
+            <button id="saveProfileBtn" class="mt-6 w-full px-4 py-4 rounded-lg bg-primary text-on-primary shadow-[0px_8px_24px_rgba(120,85,94,0.12)] font-bold active:scale-95 transition-all duration-300 flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">save</span>
+              保存资料
+            </button>
+          </details>
+
+          <details class="bg-surface-container-low rounded-xl p-6">
+            <summary class="cursor-pointer font-headline text-lg font-bold text-primary select-none">管理纪念日</summary>
+            <div class="mt-4 flex items-center justify-between">
+              <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold">重要纪念日</div>
+              <button id="addAnniversaryBtn" class="px-4 py-2 rounded-full bg-surface-container-lowest border border-outline-variant/25 text-primary font-bold active:scale-95 transition-all duration-300 flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 0;">add</span>
+                新增
+              </button>
+            </div>
+            <div id="anniversaryList" class="mt-4 space-y-2"></div>
+            <div id="anniversaryEmpty" class="mt-4 text-sm text-secondary/80 hidden">还没有纪念日，新增一个吧</div>
+          </details>
+        </section>
+      </main>
+
+      <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4 bg-[#fef8fa]/70 backdrop-blur-xl z-50 rounded-t-[3rem] shadow-[0px_-8px_24px_rgba(120,85,94,0.06)]">
+        <a href="#home" id="tab-home" class="tab flex flex-col items-center justify-center rounded-full px-6 py-2 transition-all hover:scale-105 active:scale-90 duration-300">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">home</span>
+          <span class="font-label text-[10px] uppercase tracking-widest font-bold mt-1">Home</span>
+        </a>
+        <a href="#album" id="tab-album" class="tab flex flex-col items-center justify-center rounded-full px-6 py-2 transition-all hover:scale-105 active:scale-90 duration-300">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">photo_library</span>
+          <span class="font-label text-[10px] uppercase tracking-widest font-bold mt-1">Gallery</span>
+        </a>
+        <a href="#me" id="tab-me" class="tab flex flex-col items-center justify-center rounded-full px-6 py-2 transition-all hover:scale-105 active:scale-90 duration-300">
+          <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">favorite</span>
+          <span class="font-label text-[10px] uppercase tracking-widest font-bold mt-1">Me</span>
+        </a>
+      </nav>
+
+      <div id="toastRoot" class="fixed top-16 left-0 right-0 z-50 pointer-events-none"></div>
+
+      <div id="modalRoot" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-black/40"></div>
+        <div class="absolute inset-0 flex items-end justify-center p-4">
+          <div class="w-full max-w-md rounded-xl bg-surface/90 border border-outline-variant/30 shadow-[0px_12px_32px_rgba(120,85,94,0.10)] backdrop-blur-xl p-4">
+            <div id="modalTitle" class="font-headline font-bold text-primary"></div>
+            <div id="modalBody" class="mt-2 text-sm text-secondary/85"></div>
+            <div class="mt-4 grid grid-cols-2 gap-3">
+              <button id="modalCancel" class="px-4 py-3 rounded-lg bg-surface-container-lowest border border-outline-variant/25 text-primary font-bold active:scale-95 transition-all duration-300">
+                取消
+              </button>
+              <button id="modalOk" class="px-4 py-3 rounded-lg bg-primary text-on-primary shadow-[0px_8px_24px_rgba(120,85,94,0.12)] font-bold active:scale-95 transition-all duration-300">
+                确定
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="viewerRoot" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-black/80"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+          <img id="viewerImg" class="max-h-[85vh] max-w-[92vw] rounded-xl shadow-[0px_12px_32px_rgba(0,0,0,0.30)] select-none" />
+        </div>
+        <button id="viewerClose" class="absolute top-4 right-4 px-4 py-2 rounded-full bg-white/20 text-white backdrop-blur-md active:scale-95">
+          关闭
+        </button>
+      </div>
+    </div>
+
+    <script type="module" src="./js/app.js"></script>
+    <script>
+      ;(function () {
+        if (location.protocol !== "file:") return
+        var el = document.getElementById("fileHint")
+        if (!el) return
+        el.classList.remove("hidden")
+        var ok = document.getElementById("fileHintOk")
+        if (ok) ok.addEventListener("click", function () { el.classList.add("hidden") })
+      })()
+    </script>
+  </body>
+</html>
