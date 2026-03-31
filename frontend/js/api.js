@@ -49,6 +49,42 @@ async function request(path, { method = "GET", body, headers } = {}) {
   return data
 }
 
+async function upload(path, formData, { method = "POST", headers } = {}) {
+  const url = `${getApiBase()}${path}`
+  const res = await fetch(url, {
+    method,
+    headers: withAuthHeaders({
+      Accept: "application/json",
+      ...(headers || {})
+    }),
+    body: formData
+  })
+
+  if (res.status === 204) return null
+
+  let data = null
+  const text = await res.text()
+  if (text) {
+    try {
+      data = JSON.parse(text)
+    } catch {
+      data = { message: text }
+    }
+  }
+
+  if (!res.ok) {
+    if (res.status === 401) {
+      tokenStore.clear()
+      localStorage.removeItem(STORAGE_KEYS.profileCache)
+    }
+    const err = new Error(data?.detail || data?.message || `HTTP ${res.status}`)
+    err.status = res.status
+    err.data = data
+    throw err
+  }
+  return data
+}
+
 export const api = {
   async register(username, password) {
     return request("/api/auth/register", { method: "POST", body: { username, password } })
@@ -66,6 +102,11 @@ export const api = {
   },
   async putProfile(profile) {
     return request("/api/profile", { method: "PUT", body: profile })
+  },
+  async uploadAvatar(file) {
+    const fd = new FormData()
+    fd.append("file", file)
+    return upload("/api/uploads/avatar", fd)
   },
   async getCheckinSummary() {
     return request("/api/checkins/summary")

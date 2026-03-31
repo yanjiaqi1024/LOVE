@@ -99,6 +99,10 @@ export function initMeView(ctx) {
   const inputSlogan = document.getElementById("inputSlogan")
   const inputYourAvatar = document.getElementById("inputYourAvatar")
   const inputPartnerAvatar = document.getElementById("inputPartnerAvatar")
+  const inputYourAvatarFile = document.getElementById("inputYourAvatarFile")
+  const inputPartnerAvatarFile = document.getElementById("inputPartnerAvatarFile")
+  const yourAvatarFileName = document.getElementById("yourAvatarFileName")
+  const partnerAvatarFileName = document.getElementById("partnerAvatarFileName")
   const saveProfileBtn = document.getElementById("saveProfileBtn")
 
   const addAnniversaryBtn = document.getElementById("addAnniversaryBtn")
@@ -115,6 +119,8 @@ export function initMeView(ctx) {
   let currentSummary = null
   let previewUrls = []
   let previewAllUrls = []
+  let yourAvatarObjectUrl = ""
+  let partnerAvatarObjectUrl = ""
 
   async function loadProfile() {
     try {
@@ -150,23 +156,78 @@ export function initMeView(ctx) {
     inputSlogan.value = p?.slogan || ""
     inputYourAvatar.value = p?.yourAvatar || ""
     inputPartnerAvatar.value = p?.partnerAvatar || ""
+    if (inputYourAvatarFile) inputYourAvatarFile.value = ""
+    if (inputPartnerAvatarFile) inputPartnerAvatarFile.value = ""
+    if (yourAvatarFileName) yourAvatarFileName.textContent = "未选择图片"
+    if (partnerAvatarFileName) partnerAvatarFileName.textContent = "未选择图片"
+
+    try {
+      if (yourAvatarObjectUrl?.startsWith("blob:")) URL.revokeObjectURL(yourAvatarObjectUrl)
+    } catch {}
+    try {
+      if (partnerAvatarObjectUrl?.startsWith("blob:")) URL.revokeObjectURL(partnerAvatarObjectUrl)
+    } catch {}
+    yourAvatarObjectUrl = ""
+    partnerAvatarObjectUrl = ""
 
     setImg(meAvatarYourImg, p?.yourAvatar || "")
     setImg(meAvatarPartnerImg, p?.partnerAvatar || "")
   }
 
+  function handleAvatarFileChange(which, inputEl, imgEl, nameEl, getFallbackUrl) {
+    if (!inputEl) return
+    inputEl.addEventListener("change", () => {
+      const f = inputEl.files?.[0]
+      const prev = which === "your" ? yourAvatarObjectUrl : partnerAvatarObjectUrl
+      try {
+        if (prev?.startsWith("blob:")) URL.revokeObjectURL(prev)
+      } catch {}
+      if (which === "your") yourAvatarObjectUrl = ""
+      else partnerAvatarObjectUrl = ""
+      if (!f) {
+        if (nameEl) nameEl.textContent = "未选择图片"
+        setImg(imgEl, getFallbackUrl?.() || "")
+        return
+      }
+      const u = URL.createObjectURL(f)
+      if (which === "your") yourAvatarObjectUrl = u
+      else partnerAvatarObjectUrl = u
+      if (nameEl) nameEl.textContent = f.name || "已选择图片"
+      setImg(imgEl, u)
+    })
+  }
+
+  handleAvatarFileChange("your", inputYourAvatarFile, meAvatarYourImg, yourAvatarFileName, () => inputYourAvatar?.value || "")
+  handleAvatarFileChange("partner", inputPartnerAvatarFile, meAvatarPartnerImg, partnerAvatarFileName, () => inputPartnerAvatar?.value || "")
+
   saveProfileBtn.addEventListener("click", async (e) => {
     e.preventDefault()
-    const payload = {
-      yourNickname: inputYourNickname.value.trim(),
-      partnerNickname: inputPartnerNickname.value.trim(),
-      yourAvatar: inputYourAvatar.value.trim(),
-      partnerAvatar: inputPartnerAvatar.value.trim(),
-      metDate: inputMetDate.value || null,
-      loveDate: inputTogetherDate.value || null,
-      slogan: inputSlogan.value.trim()
-    }
     try {
+      saveProfileBtn.disabled = true
+      let yourAvatarUrl = inputYourAvatar.value.trim()
+      let partnerAvatarUrl = inputPartnerAvatar.value.trim()
+
+      const yourFile = inputYourAvatarFile?.files?.[0]
+      const partnerFile = inputPartnerAvatarFile?.files?.[0]
+
+      if (yourFile) {
+        const r = await api.uploadAvatar(yourFile)
+        yourAvatarUrl = r?.url || yourAvatarUrl
+      }
+      if (partnerFile) {
+        const r = await api.uploadAvatar(partnerFile)
+        partnerAvatarUrl = r?.url || partnerAvatarUrl
+      }
+
+      const payload = {
+        yourNickname: inputYourNickname.value.trim(),
+        partnerNickname: inputPartnerNickname.value.trim(),
+        yourAvatar: yourAvatarUrl,
+        partnerAvatar: partnerAvatarUrl,
+        metDate: inputMetDate.value || null,
+        loveDate: inputTogetherDate.value || null,
+        slogan: inputSlogan.value.trim()
+      }
       const p = await api.putProfile(payload)
       cacheStore.setProfile(p)
       applyProfile(p)
@@ -174,6 +235,8 @@ export function initMeView(ctx) {
       if (location.hash === "#home") ctx.home?.refresh?.()
     } catch (err) {
       toast(err.message || "保存失败", { tone: "error" })
+    } finally {
+      saveProfileBtn.disabled = false
     }
   })
 

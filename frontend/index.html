@@ -492,14 +492,30 @@
                 <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">恋爱宣言</div>
                 <input id="inputSlogan" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" placeholder="写一句你们的宣言" />
               </label>
-              <label class="block col-span-2">
-                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">我的头像链接</div>
-                <input id="inputYourAvatar" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" placeholder="https://..." />
-              </label>
-              <label class="block col-span-2">
-                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">TA 的头像链接</div>
-                <input id="inputPartnerAvatar" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus:border-primary/40 focus:ring-4 focus:ring-primary-container/40" placeholder="https://..." />
-              </label>
+              <div class="block col-span-2">
+                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">我的头像</div>
+                <label for="inputYourAvatarFile" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary-container/40 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] transition-all duration-300">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="material-symbols-outlined text-[18px] text-secondary/70" style="font-variation-settings: 'FILL' 0;">photo_camera</span>
+                    <span id="yourAvatarFileName" class="text-sm text-secondary/70 truncate">未选择图片</span>
+                  </div>
+                  <span class="text-xs px-4 py-2 rounded-full bg-primary-container text-on-primary-container font-bold whitespace-nowrap">选择</span>
+                </label>
+                <input id="inputYourAvatarFile" type="file" accept="image/*" class="sr-only" />
+                <input id="inputYourAvatar" type="hidden" />
+              </div>
+              <div class="block col-span-2">
+                <div class="font-label text-[10px] uppercase tracking-widest text-secondary font-bold mb-2">TA 的头像</div>
+                <label for="inputPartnerAvatarFile" class="w-full rounded-lg bg-surface border border-outline-variant/30 px-4 py-3 focus-within:border-primary/40 focus-within:ring-4 focus-within:ring-primary-container/40 flex items-center justify-between gap-3 cursor-pointer select-none active:scale-[0.99] transition-all duration-300">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <span class="material-symbols-outlined text-[18px] text-secondary/70" style="font-variation-settings: 'FILL' 0;">photo_camera</span>
+                    <span id="partnerAvatarFileName" class="text-sm text-secondary/70 truncate">未选择图片</span>
+                  </div>
+                  <span class="text-xs px-4 py-2 rounded-full bg-primary-container text-on-primary-container font-bold whitespace-nowrap">选择</span>
+                </label>
+                <input id="inputPartnerAvatarFile" type="file" accept="image/*" class="sr-only" />
+                <input id="inputPartnerAvatar" type="hidden" />
+              </div>
             </div>
 
             <button id="saveProfileBtn" class="mt-6 w-full px-4 py-4 rounded-lg bg-primary text-on-primary shadow-[0px_8px_24px_rgba(120,85,94,0.12)] font-bold active:scale-95 transition-all duration-300 flex items-center justify-center gap-2">
