@@ -119,6 +119,11 @@ export const api = {
     fd.append("file", file)
     return upload("/api/uploads/avatar", fd)
   },
+  async uploadPostMedia(file) {
+    const fd = new FormData()
+    fd.append("file", file)
+    return upload("/api/uploads/post-media", fd)
+  },
   async getCheckinSummary() {
     return request("/api/checkins/summary")
   },
@@ -145,6 +150,16 @@ export const api = {
   },
   async deleteAlbumMeta(id) {
     return request(`/api/album-meta/${id}`, { method: "DELETE" })
+  },
+  async listPosts({ limit = 30 } = {}) {
+    const qs = new URLSearchParams({ limit: String(limit) })
+    return request(`/api/posts?${qs.toString()}`)
+  },
+  async createPost({ author = "your", content = "", location = "", media = [] } = {}) {
+    return request("/api/posts", { method: "POST", body: { author, content, location, media } })
+  },
+  async deletePost(id) {
+    return request(`/api/posts/${id}`, { method: "DELETE" })
   }
 }
 

@@ -5,17 +5,19 @@ import { initAlbumView } from "./views/album.js"
 import { initHomeView } from "./views/home.js"
 import { initLoginView } from "./views/login.js"
 import { initMeView } from "./views/me.js"
+import { initPostView } from "./views/post.js"
 
 const views = {
   login: { id: "view-login", title: "Our Sanctuary", tab: null },
   home: { id: "view-home", title: "Our Sanctuary", tab: "home" },
-  album: { id: "view-album", title: "Our Sanctuary", tab: "album" },
-  me: { id: "view-me", title: "Our Sanctuary", tab: "me" }
+  album: { id: "view-album", title: "回忆", tab: "album" },
+  post: { id: "view-post", title: "发布回忆", tab: null },
+  me: { id: "view-me", title: "我的", tab: "me" }
 }
 
 function normalizeHash(hash) {
   const h = (hash || "").replace(/^#/, "")
-  if (h === "home" || h === "album" || h === "me" || h === "login") return h
+  if (h === "home" || h === "album" || h === "post" || h === "me" || h === "login") return h
   return "home"
 }
 
@@ -26,14 +28,17 @@ function setView(name) {
   }
 
   const header = document.getElementById("topAppBar")
-  header.classList.toggle("hidden", name === "login")
+  header.classList.toggle("hidden", name === "login" || name === "post")
+
+  const composeBtn = document.getElementById("composeBtn")
+  if (composeBtn) composeBtn.classList.toggle("hidden", name !== "album")
 
   const nav = document.querySelector("nav")
-  nav.classList.toggle("hidden", name === "login")
+  nav.classList.toggle("hidden", name === "login" || name === "post")
 
   setHeaderTitle(views[name].title)
   setActiveTab(views[name].tab)
-  setLogoutVisible(name !== "login")
+  setLogoutVisible(name !== "login" && name !== "post")
 }
 
 export function navigate(hash) {
@@ -50,6 +55,7 @@ const ctx = {
 initLoginView(ctx)
 initHomeView(ctx)
 initAlbumView(ctx)
+initPostView(ctx)
 initMeView(ctx)
 
 function isAuthed() {
@@ -73,6 +79,14 @@ document.getElementById("settingsBtn").addEventListener("click", async (e) => {
   if (ok) onLogout()
 })
 
+const composeBtn = document.getElementById("composeBtn")
+if (composeBtn) {
+  composeBtn.addEventListener("click", (e) => {
+    e.preventDefault()
+    navigate("#post")
+  })
+}
+
 async function onRoute() {
   const target = normalizeHash(location.hash)
   if (!isAuthed() && target !== "login") {
@@ -87,6 +101,7 @@ async function onRoute() {
   try {
     if (name === "home") await ctx.home?.refresh?.()
     if (name === "album") await ctx.album?.refresh?.()
+    if (name === "post") await ctx.post?.refresh?.()
     if (name === "me") await ctx.me?.refresh?.()
   } catch (e) {
     toast(e.message || "加载失败", { tone: "error" })

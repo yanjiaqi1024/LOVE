@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from .auth import get_current_user
 from .db import init_db
 from .routers import album_meta, anniversaries, auth, checkin, profile
+from .routers import posts
 from .routers import uploads
 from .settings import MEDIA_DIR, ensure_dirs
 
@@ -44,6 +45,7 @@ app.include_router(profile.router)
 app.include_router(checkin.router)
 app.include_router(anniversaries.router)
 app.include_router(album_meta.router)
+app.include_router(posts.router)
 app.include_router(uploads.router)
 
 FRONTEND_DIR = (Path(__file__).resolve().parent.parent / "frontend").as_posix()

@@ -53,3 +53,23 @@ class AlbumMeta(SQLModel, table=True):
     taken_at: Optional[datetime] = None
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class Post(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True, foreign_key="user.id")
+    author: str = Field(default="your", max_length=16)
+    content: str = Field(default="", max_length=4000)
+    location: str = Field(default="", max_length=128)
+    created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class PostMedia(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True, foreign_key="user.id")
+    post_id: int = Field(index=True, foreign_key="post.id")
+    url: str = Field(max_length=1024)
+    kind: str = Field(default="image", max_length=16)
+    content_type: str = Field(default="", max_length=128)
+    created_at: datetime = Field(default_factory=datetime.utcnow)

@@ -8,11 +8,12 @@ from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile
 
 from ..auth import get_current_user
 from ..models import User
-from ..settings import AVATAR_DIR, ensure_dirs
+from ..settings import AVATAR_DIR, POST_MEDIA_DIR, ensure_dirs
 
 router = APIRouter(prefix="/api/uploads", tags=["uploads"])
 
 MAX_AVATAR_BYTES = int(os.environ.get("COUPLESPACE_MAX_AVATAR_BYTES") or (5 * 1024 * 1024))
+MAX_POST_MEDIA_BYTES = int(os.environ.get("COUPLESPACE_MAX_POST_MEDIA_BYTES") or (30 * 1024 * 1024))
 
 MIME_EXT = {
     "image/jpeg": "jpg",
@@ -20,6 +21,9 @@ MIME_EXT = {
     "image/png": "png",
     "image/webp": "webp",
     "image/gif": "gif",
+    "video/mp4": "mp4",
+    "video/webm": "webm",
+    "video/quicktime": "mov",
 }
 
 
@@ -74,3 +78,49 @@ async def upload_avatar(
         "size": written,
     }
 
+
+@router.post("/post-media")
+async def upload_post_media(
+    request: Request,
+    file: UploadFile = File(...),
+    user: User = Depends(get_current_user),
+):
+    ensure_dirs()
+    if not file.content_type or not (file.content_type.startswith("image/") or file.content_type.startswith("video/")):
+        raise HTTPException(status_code=400, detail="仅支持图片或视频文件")
+
+    ext = MIME_EXT.get(file.content_type)
+    if not ext:
+        raise HTTPException(status_code=400, detail="不支持的文件格式")
+
+    kind = "video" if file.content_type.startswith("video/") else "image"
+    name = f"{user.id}_{uuid.uuid4().hex}.{ext}"
+    target: Path = (POST_MEDIA_DIR / name).resolve()
+    if POST_MEDIA_DIR not in target.parents:
+        raise HTTPException(status_code=400, detail="非法文件路径")
+
+    written = 0
+    try:
+        with target.open("wb") as f:
+            while True:
+                chunk = await file.read(1024 * 1024)
+                if not chunk:
+                    break
+                written += len(chunk)
+                if written > MAX_POST_MEDIA_BYTES:
+                    raise HTTPException(status_code=413, detail="文件太大")
+                f.write(chunk)
+    finally:
+        try:
+            await file.close()
+        except Exception:
+            pass
+
+    rel_path = f"/media/posts/{name}"
+    return {
+        "path": rel_path,
+        "url": _public_url(request, rel_path),
+        "contentType": file.content_type,
+        "kind": kind,
+        "size": written,
+    }

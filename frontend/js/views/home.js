@@ -121,16 +121,40 @@ export function initHomeView(ctx) {
     }
   }
 
-  function applyNextMilestone(list) {
-    if (!nextMilestoneName || !nextMilestoneDaysLeft) return
-    const today = startOfToday()
-    const items = Array.isArray(list) ? list : []
-    const future = items
-      .map((x) => ({ ...x, day: new Date(`${x.day}T00:00:00`) }))
-      .filter((x) => !Number.isNaN(x.day.getTime()))
-      .map((x) => ({ ...x, daysLeft: Math.ceil((x.day.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)) }))
-      .filter((x) => x.daysLeft >= 0)
-      .sort((a, b) => a.daysLeft - b.daysLeft)
+  function safeDate(y, m, d) {
+  const dt = new Date(y, m, d)
+  dt.setHours(0, 0, 0, 0)
+  while (dt.getMonth() !== m) dt.setDate(dt.getDate() - 1)
+  return dt
+}
+
+function nextAnnualOccurrence(dayStr, today = startOfToday()) {
+  if (!dayStr) return null
+  const base = new Date(`${dayStr}T00:00:00`)
+  if (Number.isNaN(base.getTime())) return null
+  const m = base.getMonth()
+  const d = base.getDate()
+  let next = safeDate(today.getFullYear(), m, d)
+  if (next.getTime() < today.getTime()) next = safeDate(today.getFullYear() + 1, m, d)
+  return next
+}
+
+function applyNextMilestone(list) {
+  if (!nextMilestoneName || !nextMilestoneDaysLeft) return
+  const today = startOfToday()
+  const items = Array.isArray(list) ? list : []
+  const future = items
+    .map((x) => {
+      const next = nextAnnualOccurrence(x.day, today)
+      if (!next) return null
+      return {
+        ...x,
+        daysLeft: Math.ceil((next.getTime() - today.getTime()) / (24 * 60 * 60 * 1000))
+      }
+    })
+    .filter(Boolean)
+    .filter((x) => x.daysLeft >= 0)
+    .sort((a, b) => a.daysLeft - b.daysLeft)
 
     if (!future.length) {
       nextMilestoneName.textContent = "—"

@@ -51,16 +51,6 @@ function formatDay(dayStr) {
   return dayStr
 }
 
-function countdownText(dayStr) {
-  if (!dayStr) return ""
-  const t = new Date(`${dayStr}T00:00:00`)
-  if (Number.isNaN(t.getTime())) return ""
-  const diff = daysDiff(t, startOfToday())
-  if (diff > 0) return `已过 ${diff} 天`
-  if (diff === 0) return "就是今天"
-  return `还有 ${Math.abs(diff)} 天`
-}
-
 function formatStoryDate(dayStr) {
   if (!dayStr) return "--.--.--"
   const d = new Date(`${dayStr}T00:00:00`)
@@ -298,8 +288,8 @@ export function initMeView(ctx) {
       milestonePrimaryDesc.textContent = first ? `${first._nextStr} · 距离${first.name}` : "—"
     }
 
-    if (milestoneSecondaryName) milestoneSecondaryName.textContent = second ? `${second._nextStr} · ${second.name}` : "—"
-    if (milestoneSecondaryDays) milestoneSecondaryDays.textContent = second ? String(second._daysLeft) : "—"
+    if (milestoneSecondaryName) milestoneSecondaryName.textContent = first ? `${first._nextStr} · ${first.name}` : "—"
+    if (milestoneSecondaryDays) milestoneSecondaryDays.textContent = first ? String(first._daysLeft) : "—"
   }
 
   function anniversaryModal({ title = "新增纪念日", initialName = "", initialDay = "" } = {}) {
@@ -542,7 +532,7 @@ export function initMeView(ctx) {
       name.textContent = it.name
       const meta = document.createElement("div")
       meta.className = "text-xs text-secondary/80 mt-1"
-      meta.textContent = `${formatDay(it.day)} · ${countdownText(it.day)}`
+      meta.textContent = formatDay(it.day)
       left.appendChild(name)
       left.appendChild(meta)
 
