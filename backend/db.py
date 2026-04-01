@@ -15,10 +15,13 @@ else:
     engine = create_engine(DB_URL, pool_pre_ping=True)
 
 
-def _ensure_sqlite_columns() -> None:
-    if not DB_URL.startswith("sqlite:///"):
-        return
+def _q(name: str) -> str:
+    if engine.dialect.name == "mysql":
+        return f"`{name}`"
+    return f'"{name}"'
 
+
+def _ensure_columns() -> None:
     insp = inspect(engine)
     table_cols = {t: {c["name"] for c in insp.get_columns(t)} for t in insp.get_table_names()}
 
@@ -30,7 +33,7 @@ def _ensure_sqlite_columns() -> None:
         if "invite_code" not in table_cols["user"]:
             alters.append(("user", "invite_code", "VARCHAR(64)"))
 
-    targets = ["profile", "checkin", "anniversary", "albummeta", "post", "postmedia"]
+    targets = ["profile", "anniversary", "albummeta", "post", "postmedia"]
     for t in targets:
         if t not in table_cols:
             continue
@@ -44,19 +47,16 @@ def _ensure_sqlite_columns() -> None:
 
     with engine.begin() as conn:
         for (t, col, typ) in alters:
-            conn.execute(text(f'ALTER TABLE "{t}" ADD COLUMN {col} {typ}'))
+            conn.execute(text(f"ALTER TABLE {_q(t)} ADD COLUMN {col} {typ}"))
 
 
 def _backfill_couple_data() -> None:
-    if not DB_URL.startswith("sqlite:///"):
-        return
-
     from .invites import generate_invite_code
     from .models import Couple, User
     from sqlmodel import select
 
     with Session(engine) as session:
-        users = session.exec(text('SELECT id, couple_id, invite_code FROM "user"')).all()
+        users = session.exec(text(f"SELECT id, couple_id, invite_code FROM {_q('user')}")).all()
         for (uid, couple_id, invite_code) in users:
             need_couple = couple_id is None
             need_code = not invite_code
@@ -86,21 +86,21 @@ def _backfill_couple_data() -> None:
 
         updates = [
             "profile",
-            "checkin",
             "anniversary",
             "albummeta",
             "post",
             "postmedia",
         ]
+        insp = inspect(engine)
+        table_cols = {t: {c["name"] for c in insp.get_columns(t)} for t in insp.get_table_names()}
         for t in updates:
-            cols = session.exec(text(f'PRAGMA table_info("{t}")')).all()
-            col_names = {c[1] for c in cols}
+            col_names = table_cols.get(t) or set()
             if "user_id" not in col_names or "couple_id" not in col_names:
                 continue
             session.exec(
                 text(
-                    f'UPDATE "{t}" SET couple_id = (SELECT couple_id FROM "user" u WHERE u.id = "{t}".user_id) '
-                    f'WHERE couple_id IS NULL'
+                    f"UPDATE {_q(t)} SET couple_id = (SELECT couple_id FROM {_q('user')} u WHERE u.id = {_q(t)}.user_id) "
+                    f"WHERE couple_id IS NULL"
                 )
             )
             session.commit()
@@ -108,7 +108,7 @@ def _backfill_couple_data() -> None:
 
 def init_db() -> None:
     SQLModel.metadata.create_all(engine)
-    _ensure_sqlite_columns()
+    _ensure_columns()
     _backfill_couple_data()
 
 
