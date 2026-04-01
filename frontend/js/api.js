@@ -97,16 +97,19 @@ async function upload(path, formData, { method = "POST", headers } = {}) {
 }
 
 export const api = {
-  async register(username, password) {
-    return request("/api/auth/register", { method: "POST", body: { username, password } })
+  async register(username, password, { inviteCode = "" } = {}) {
+    return request("/api/auth/register", { method: "POST", body: { username, password, invite_code: inviteCode || null } })
   },
-  async login(username, password) {
-    const data = await request("/api/auth/login", { method: "POST", body: { username, password } })
+  async login(username, password, { inviteCode = "" } = {}) {
+    const data = await request("/api/auth/login", { method: "POST", body: { username, password, invite_code: inviteCode || null } })
     tokenStore.set(data.access_token)
     return data
   },
   async me() {
     return request("/api/me")
+  },
+  async getMyInvite() {
+    return request("/api/invites/me")
   },
   async getProfile() {
     return request("/api/profile")

@@ -6,10 +6,12 @@ from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
+from sqlmodel import Session, select
 
 from .auth import get_current_user
-from .db import init_db
-from .routers import album_meta, anniversaries, auth, checkin, profile
+from .db import get_session, init_db
+from .models import User
+from .routers import album_meta, anniversaries, auth, checkin, invites, profile
 from .routers import posts
 from .routers import uploads
 from .settings import MEDIA_DIR, ensure_dirs
@@ -36,11 +38,17 @@ def health():
 
 
 @app.get("/api/me")
-def me(user=Depends(get_current_user)):
-    return {"id": user.id, "username": user.username}
+def me(user=Depends(get_current_user), session: Session = Depends(get_session)):
+    couple_id = user.couple_id
+    member_count = 0
+    if couple_id is not None:
+        rows = session.exec(select(User.id).where(User.couple_id == couple_id)).all()
+        member_count = len(rows)
+    return {"id": user.id, "username": user.username, "coupleId": couple_id, "coupleMemberCount": member_count}
 
 
 app.include_router(auth.router)
+app.include_router(invites.router)
 app.include_router(profile.router)
 app.include_router(checkin.router)
 app.include_router(anniversaries.router)

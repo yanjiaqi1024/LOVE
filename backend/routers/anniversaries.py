@@ -33,7 +33,7 @@ def list_anniversaries(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    rows = session.exec(select(Anniversary).where(Anniversary.user_id == user.id).order_by(Anniversary.day)).all()
+    rows = session.exec(select(Anniversary).where(Anniversary.couple_id == user.couple_id).order_by(Anniversary.day)).all()
     return [_to_dict(r) for r in rows]
 
 
@@ -43,7 +43,7 @@ def create_anniversary(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    item = Anniversary(user_id=user.id, name=body.name, day=body.day, created_at=datetime.utcnow(), updated_at=datetime.utcnow())
+    item = Anniversary(couple_id=user.couple_id, name=body.name, day=body.day, created_at=datetime.utcnow(), updated_at=datetime.utcnow())
     session.add(item)
     session.commit()
     session.refresh(item)
@@ -57,7 +57,7 @@ def update_anniversary(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    item = session.exec(select(Anniversary).where(Anniversary.id == anniversary_id).where(Anniversary.user_id == user.id)).first()
+    item = session.exec(select(Anniversary).where(Anniversary.id == anniversary_id).where(Anniversary.couple_id == user.couple_id)).first()
     if item is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
 
@@ -78,7 +78,7 @@ def delete_anniversary(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    item = session.exec(select(Anniversary).where(Anniversary.id == anniversary_id).where(Anniversary.user_id == user.id)).first()
+    item = session.exec(select(Anniversary).where(Anniversary.id == anniversary_id).where(Anniversary.couple_id == user.couple_id)).first()
     if item is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     session.delete(item)

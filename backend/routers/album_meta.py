@@ -34,7 +34,7 @@ def list_meta(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    rows = session.exec(select(AlbumMeta).where(AlbumMeta.user_id == user.id).order_by(AlbumMeta.created_at.desc())).all()
+    rows = session.exec(select(AlbumMeta).where(AlbumMeta.couple_id == user.couple_id).order_by(AlbumMeta.created_at.desc())).all()
     return [_to_dict(r) for r in rows]
 
 
@@ -44,12 +44,14 @@ def create_meta(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    existing = session.exec(select(AlbumMeta).where(AlbumMeta.user_id == user.id).where(AlbumMeta.local_id == body.localId)).first()
+    existing = session.exec(
+        select(AlbumMeta).where(AlbumMeta.couple_id == user.couple_id).where(AlbumMeta.local_id == body.localId)
+    ).first()
     if existing is not None:
         return _to_dict(existing)
 
     item = AlbumMeta(
-        user_id=user.id,
+        couple_id=user.couple_id,
         local_id=body.localId,
         title=body.title,
         taken_at=body.takenAt,
@@ -69,7 +71,7 @@ def update_meta(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    item = session.exec(select(AlbumMeta).where(AlbumMeta.id == meta_id).where(AlbumMeta.user_id == user.id)).first()
+    item = session.exec(select(AlbumMeta).where(AlbumMeta.id == meta_id).where(AlbumMeta.couple_id == user.couple_id)).first()
     if item is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
 
@@ -90,7 +92,7 @@ def delete_meta(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    item = session.exec(select(AlbumMeta).where(AlbumMeta.id == meta_id).where(AlbumMeta.user_id == user.id)).first()
+    item = session.exec(select(AlbumMeta).where(AlbumMeta.id == meta_id).where(AlbumMeta.couple_id == user.couple_id)).first()
     if item is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
     session.delete(item)

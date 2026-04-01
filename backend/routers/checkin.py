@@ -20,7 +20,7 @@ def _summary(session: Session, user_id: int):
     total = len(days)
 
     streak = 0
-    cursor = today
+    cursor = today if checked_in_today else today - timedelta(days=1)
     while cursor in days:
         streak += 1
         cursor = cursor - timedelta(days=1)

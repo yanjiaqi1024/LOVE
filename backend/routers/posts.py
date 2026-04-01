@@ -46,7 +46,7 @@ def _safe_delete_post_file(url: str) -> None:
         return
 
 
-def _to_dict(post: Post, media: list[PostMedia]) -> dict:
+def _to_dict(post: Post, media: list[PostMedia], *, viewer_user_id: int) -> dict:
     return {
         "id": post.id,
         "author": post.author,
@@ -55,6 +55,7 @@ def _to_dict(post: Post, media: list[PostMedia]) -> dict:
         "createdAt": post.created_at,
         "updatedAt": post.updated_at,
         "media": [{"id": m.id, "url": m.url, "kind": m.kind, "contentType": m.content_type} for m in media],
+        "canDelete": bool(post.user_id) and int(post.user_id) == int(viewer_user_id),
     }
 
 
@@ -66,12 +67,12 @@ def list_posts(
 ):
     limit = max(1, min(int(limit or 30), 100))
     posts = session.exec(
-        select(Post).where(Post.user_id == user.id).order_by(Post.created_at.desc()).limit(limit)
+        select(Post).where(Post.couple_id == user.couple_id).order_by(Post.created_at.desc()).limit(limit)
     ).all()
     out = []
     for p in posts:
         ms = session.exec(select(PostMedia).where(PostMedia.post_id == p.id).order_by(PostMedia.id.asc())).all()
-        out.append(_to_dict(p, ms))
+        out.append(_to_dict(p, ms, viewer_user_id=user.id))
     return out
 
 
@@ -91,6 +92,7 @@ def create_post(
     now = datetime.utcnow()
     post = Post(
         user_id=user.id,
+        couple_id=user.couple_id,
         author=(body.author or "your").strip() or "your",
         content=(body.content or "").strip(),
         location=(body.location or "").strip(),
@@ -106,6 +108,7 @@ def create_post(
         kind = (m.kind or "").strip() or ("video" if (m.contentType or "").startswith("video/") else "image")
         item = PostMedia(
             user_id=user.id,
+            couple_id=user.couple_id,
             post_id=post.id,
             url=m.url,
             kind=kind,
@@ -117,7 +120,7 @@ def create_post(
     session.commit()
     for it in items:
         session.refresh(it)
-    return _to_dict(post, items)
+    return _to_dict(post, items, viewer_user_id=user.id)
 
 
 @router.delete("/{post_id}")
@@ -126,9 +129,11 @@ def delete_post(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    post = session.exec(select(Post).where(Post.id == post_id).where(Post.user_id == user.id)).first()
+    post = session.exec(select(Post).where(Post.id == post_id).where(Post.couple_id == user.couple_id)).first()
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+    if not post.user_id or int(post.user_id) != int(user.id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
     media = session.exec(select(PostMedia).where(PostMedia.post_id == post.id)).all()
     for m in media:
@@ -138,4 +143,3 @@ def delete_post(
     session.delete(post)
     session.commit()
     return {"ok": True}
-

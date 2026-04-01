@@ -3,12 +3,14 @@ import { tokenStore } from "./storage.js"
 import { confirmModal, setActiveTab, setHeaderTitle, setLogoutVisible, toast, viewer as createViewer } from "./ui.js"
 import { initAlbumView } from "./views/album.js"
 import { initHomeView } from "./views/home.js"
+import { initInviteView } from "./views/invite.js"
 import { initLoginView } from "./views/login.js"
 import { initMeView } from "./views/me.js"
 import { initPostView } from "./views/post.js"
 
 const views = {
   login: { id: "view-login", title: "Our Sanctuary", tab: null },
+  invite: { id: "view-invite", title: "邀请另一半", tab: null },
   home: { id: "view-home", title: "Our Sanctuary", tab: "home" },
   album: { id: "view-album", title: "回忆", tab: "album" },
   post: { id: "view-post", title: "发布回忆", tab: null },
@@ -17,7 +19,8 @@ const views = {
 
 function normalizeHash(hash) {
   const h = (hash || "").replace(/^#/, "")
-  if (h === "home" || h === "album" || h === "post" || h === "me" || h === "login") return h
+  const base = h.split("?", 1)[0]
+  if (base === "home" || base === "album" || base === "post" || base === "me" || base === "login" || base === "invite") return base
   return "home"
 }
 
@@ -28,13 +31,13 @@ function setView(name) {
   }
 
   const header = document.getElementById("topAppBar")
-  header.classList.toggle("hidden", name === "login" || name === "post")
+  header.classList.toggle("hidden", name === "login" || name === "post" || name === "invite")
 
   const composeBtn = document.getElementById("composeBtn")
   if (composeBtn) composeBtn.classList.toggle("hidden", name !== "album")
 
   const nav = document.querySelector("nav")
-  nav.classList.toggle("hidden", name === "login" || name === "post")
+  nav.classList.toggle("hidden", name === "login" || name === "post" || name === "invite")
 
   setHeaderTitle(views[name].title)
   setActiveTab(views[name].tab)
@@ -53,6 +56,7 @@ const ctx = {
 }
 
 initLoginView(ctx)
+initInviteView(ctx)
 initHomeView(ctx)
 initAlbumView(ctx)
 initPostView(ctx)

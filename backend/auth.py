@@ -14,7 +14,8 @@ from jose import JWTError, jwt
 from sqlmodel import Session, select
 
 from .db import get_session
-from .models import User
+from .invites import generate_invite_code
+from .models import Couple, User
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
@@ -79,4 +80,22 @@ def get_current_user(
     user = session.exec(select(User).where(User.username == username)).first()
     if user is None:
         raise credentials_exception
+    changed = False
+    if user.couple_id is None:
+        couple = Couple()
+        session.add(couple)
+        session.commit()
+        session.refresh(couple)
+        user.couple_id = couple.id
+        changed = True
+    if not user.invite_code:
+        code = generate_invite_code()
+        while session.exec(select(User).where(User.invite_code == code)).first() is not None:
+            code = generate_invite_code()
+        user.invite_code = code
+        changed = True
+    if changed:
+        session.add(user)
+        session.commit()
+        session.refresh(user)
     return user

@@ -41,9 +41,9 @@ def get_profile(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    profile = session.exec(select(Profile).where(Profile.user_id == user.id)).first()
+    profile = session.exec(select(Profile).where(Profile.couple_id == user.couple_id)).first()
     if profile is None:
-        profile = Profile(user_id=user.id)
+        profile = Profile(couple_id=user.couple_id)
         session.add(profile)
         session.commit()
         session.refresh(profile)
@@ -56,9 +56,9 @@ def put_profile(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    profile = session.exec(select(Profile).where(Profile.user_id == user.id)).first()
+    profile = session.exec(select(Profile).where(Profile.couple_id == user.couple_id)).first()
     if profile is None:
-        profile = Profile(user_id=user.id)
+        profile = Profile(couple_id=user.couple_id)
         session.add(profile)
         session.commit()
         session.refresh(profile)

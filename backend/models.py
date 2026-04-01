@@ -6,16 +6,23 @@ from typing import Optional
 from sqlmodel import Field, SQLModel
 
 
+class Couple(SQLModel, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+
+
 class User(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(index=True, unique=True)
     password_hash: str
+    couple_id: Optional[int] = Field(default=None, index=True, foreign_key="couple.id")
+    invite_code: Optional[str] = Field(default=None, index=True, unique=True, max_length=64)
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class Profile(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(index=True, foreign_key="user.id", unique=True)
+    couple_id: int = Field(index=True, foreign_key="couple.id", unique=True)
 
     your_nickname: str = ""
     partner_nickname: str = ""
@@ -38,7 +45,7 @@ class Checkin(SQLModel, table=True):
 
 class Anniversary(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(index=True, foreign_key="user.id")
+    couple_id: int = Field(index=True, foreign_key="couple.id")
     name: str
     day: date
     created_at: datetime = Field(default_factory=datetime.utcnow)
@@ -47,7 +54,7 @@ class Anniversary(SQLModel, table=True):
 
 class AlbumMeta(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(index=True, foreign_key="user.id")
+    couple_id: int = Field(index=True, foreign_key="couple.id")
     local_id: str = Field(index=True)
     title: str = ""
     taken_at: Optional[datetime] = None
@@ -57,7 +64,8 @@ class AlbumMeta(SQLModel, table=True):
 
 class Post(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(index=True, foreign_key="user.id")
+    user_id: Optional[int] = Field(default=None, index=True, foreign_key="user.id")
+    couple_id: Optional[int] = Field(default=None, index=True, foreign_key="couple.id")
     author: str = Field(default="your", max_length=16)
     content: str = Field(default="", max_length=4000)
     location: str = Field(default="", max_length=128)
@@ -67,7 +75,8 @@ class Post(SQLModel, table=True):
 
 class PostMedia(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    user_id: int = Field(index=True, foreign_key="user.id")
+    user_id: Optional[int] = Field(default=None, index=True, foreign_key="user.id")
+    couple_id: Optional[int] = Field(default=None, index=True, foreign_key="couple.id")
     post_id: int = Field(index=True, foreign_key="post.id")
     url: str = Field(max_length=1024)
     kind: str = Field(default="image", max_length=16)

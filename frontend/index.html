@@ -199,7 +199,7 @@
                   <div class="w-full border-t border-outline-variant/30"></div>
                 </div>
                 <div class="relative flex justify-center text-xs uppercase tracking-widest font-bold">
-                  <span class="bg-white/0 px-4 text-on-surface-variant">或 加入我们的世界</span>
+                  <span class="bg-white/0 px-4 text-on-surface-variant">或 留下回忆</span>
                 </div>
               </div>
 
@@ -220,6 +220,76 @@
               </div>
               <p class="font-headline italic text-on-surface-variant/80 text-sm">“爱在此间，回忆永恒。”</p>
             </footer>
+          </main>
+        </section>
+
+        <section id="view-invite" class="view hidden relative -mt-24 -mb-32 min-h-[100dvh] flex flex-col selection:bg-primary-container">
+          <main class="flex-grow flex flex-col items-center justify-center px-6 pt-20 pb-12">
+            <div class="text-center mb-10 space-y-3">
+              <h2 class="font-headline text-3xl font-bold text-on-surface tracking-tight leading-tight">
+                Hello! <br />欢迎来到情侣空间！
+              </h2>
+              <p class="text-secondary font-medium text-sm tracking-wide opacity-80">仅你们俩可见的空间哦~</p>
+            </div>
+
+            <div class="relative w-full max-w-sm mb-10">
+              <div class="aspect-square bg-gradient-to-tr from-primary-container/40 to-secondary-container/40 rounded-xl overflow-hidden flex items-center justify-center p-8">
+                <img
+                  alt="Couple Illustration"
+                  class="w-full h-full object-contain drop-shadow-xl"
+                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2V3DXCAYo9_nNi_wP89nkTIRGa7Ke8qxlX0esjR3TD-xqo2kF32coQBiNUMERV_1BR8Uf00TckNqmIQPCuJWSPfpFTu5XHOHPbBhLsn-ls--024ei8vSlR-G45nZx07jNJ1jtB_FJsf77zAVZJGoWU7NEYUL_zcoQAiLAgEkpnSCl9pn_-8XBfFWg_znq3ehGUu6YTF6g-HFRdiD069RCuz9LwGV0Tj6Kq3QdyYs4F_lHecORYIgMRpoK5Yw8xbyEBQAt_i8rgxk"
+                />
+              </div>
+
+              <div class="absolute -top-4 -right-4 w-12 h-12 bg-white/50 backdrop-blur rounded-full flex items-center justify-center shadow-lg">
+                <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">favorite</span>
+              </div>
+              <div class="absolute -bottom-2 -left-2 w-16 h-16 bg-white/40 backdrop-blur rounded-full flex items-center justify-center shadow-lg">
+                <span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 w-full max-w-sm mb-10">
+              <div class="flex flex-col items-center gap-2 p-3 bg-surface-container-low rounded-lg transition-transform hover:scale-105">
+                <div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center">
+                  <span class="material-symbols-outlined text-primary">photo_album</span>
+                </div>
+                <span class="text-[11px] font-bold text-secondary uppercase tracking-tighter">情侣相册</span>
+              </div>
+              <div class="flex flex-col items-center gap-2 p-3 bg-surface-container-low rounded-lg transition-transform hover:scale-105">
+                <div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center">
+                  <span class="material-symbols-outlined text-secondary">park</span>
+                </div>
+                <span class="text-[11px] font-bold text-secondary uppercase tracking-tighter">爱情树</span>
+              </div>
+              <div class="flex flex-col items-center gap-2 p-3 bg-surface-container-low rounded-lg transition-transform hover:scale-105">
+                <div class="w-12 h-12 rounded-full bg-tertiary-container flex items-center justify-center">
+                  <span class="material-symbols-outlined text-tertiary">calendar_clock</span>
+                </div>
+                <span class="text-[11px] font-bold text-secondary uppercase tracking-tighter">纪念日</span>
+              </div>
+            </div>
+
+            <button
+              id="inviteShareBtn"
+              class="w-full max-w-sm bg-gradient-to-r from-primary to-[#9a6a75] text-white py-5 rounded-lg shadow-[0px_12px_32px_rgba(120,85,94,0.15)] flex items-center justify-center gap-3 active:scale-95 transition-all duration-200"
+              type="button"
+            >
+              <span class="font-bold text-lg">立即邀请我的另一半</span>
+              <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
+
+            <div class="w-full max-w-sm mt-4 rounded-lg bg-surface-container-low border border-outline-variant/25 p-4">
+              <div class="text-xs text-secondary font-bold uppercase tracking-widest">分享链接</div>
+              <div id="inviteLinkText" class="mt-2 text-xs text-on-surface-variant break-all leading-relaxed opacity-90">—</div>
+            </div>
+
+            <div class="mt-10 flex flex-col items-center gap-4">
+              <button class="text-secondary text-sm font-semibold underline underline-offset-4 opacity-70 hover:opacity-100" type="button">开通说明</button>
+              <p class="text-[10px] text-outline-variant font-medium text-center px-12 leading-relaxed">
+                您的隐私对我们至关重要。所有对话和照片均经过端到端加密保护。
+              </p>
+            </div>
           </main>
         </section>
 
@@ -511,25 +581,6 @@
                 记录今日心情
               </button>
             </div>
-          </section>
-
-          <section class="grid grid-cols-3 gap-3">
-            <button id="mePreviewA" class="col-span-2 h-48 rounded-xl overflow-hidden bg-surface-container-lowest" aria-label="Preview A">
-              <img
-                id="mePreviewAImg"
-                class="w-full h-full object-cover"
-                alt="Preview A"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDTE_Lm6eVCCxbZr28RQKSaZEOfLQHdADwLYX1idxPCF_B6cE9eQ_2NVY6EN5H_EjB368MsjhZrvH1Upvd_j3362DEeKAZsPnlUPFRNaETcNZH0woz8Zb9KDZcUCzM0JnA0ECFN3D6vBrhtKf_H-4e44RoKB5gjhzM5fOPpZ1XPicNTw06fYJK6KzdUD1Fq_8I7Iwbeap-sJWFvCZH9kl3RyYsv9G2JpjrhAod4Tg6OiYtrqkvEFwzRUto2ub2LSpRTxybEj7aG9zs"
-              />
-            </button>
-            <button id="mePreviewB" class="col-span-1 h-48 rounded-xl overflow-hidden bg-surface-container-lowest" aria-label="Preview B">
-              <img
-                id="mePreviewBImg"
-                class="w-full h-full object-cover"
-                alt="Preview B"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCe15eAD4kf_DM_WYbqGH-iEPsPm7aUwb9z4REljzuBY3Ob2jcJaQGzLOymjFLgYhCmj5DjQhrEVUVUNnF1J9HqEFABzbpJzzivt7Gyk8Vl9QQaApNE9b_nT4YL-Py7YWIMD80ufujOl8UaKieLu7ffpCIgETHhdM0gR8RoDSXyk1Dm5Ru3XyxBGTlYAu56laToz2p8Ih7CvpIbfCBJouoGB4W6VQ7zlIii1ggtGZP6oKwrD51Mhj4PZ3krBGoH8EuPsdrCcSKY11Y"
-              />
-            </button>
           </section>
 
           <details class="bg-surface-container-low rounded-xl p-6">

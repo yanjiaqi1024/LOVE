@@ -1,5 +1,5 @@
 import { api } from "../api.js"
-import { cacheStore, photoStore } from "../storage.js"
+import { cacheStore } from "../storage.js"
 import { confirmModal, toast } from "../ui.js"
 
 function startOfToday() {
@@ -75,11 +75,6 @@ function setImg(el, url) {
 }
 
 export function initMeView(ctx) {
-  const DEFAULT_PREVIEW_A =
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuDTE_Lm6eVCCxbZr28RQKSaZEOfLQHdADwLYX1idxPCF_B6cE9eQ_2NVY6EN5H_EjB368MsjhZrvH1Upvd_j3362DEeKAZsPnlUPFRNaETcNZH0woz8Zb9KDZcUCzM0JnA0ECFN3D6vBrhtKf_H-4e44RoKB5gjhzM5fOPpZ1XPicNTw06fYJK6KzdUD1Fq_8I7Iwbeap-sJWFvCZH9kl3RyYsv9G2JpjrhAod4Tg6OiYtrqkvEFwzRUto2ub2LSpRTxybEj7aG9zs"
-  const DEFAULT_PREVIEW_B =
-    "https://lh3.googleusercontent.com/aida-public/AB6AXuCe15eAD4kf_DM_WYbqGH-iEPsPm7aUwb9z4REljzuBY3Ob2jcJaQGzLOymjFLgYhCmj5DjQhrEVUVUNnF1J9HqEFABzbpJzzivt7Gyk8Vl9QQaApNE9b_nT4YL-Py7YWIMD80ufujOl8UaKieLu7ffpCIgETHhdM0gR8RoDSXyk1Dm5Ru3XyxBGTlYAu56laToz2p8Ih7CvpIbfCBJouoGB4W6VQ7zlIii1ggtGZP6oKwrD51Mhj4PZ3krBGoH8EuPsdrCcSKY11Y"
-
   const meAvatarYourImg = document.getElementById("meAvatarYourImg")
   const meAvatarPartnerImg = document.getElementById("meAvatarPartnerImg")
   const meCoupleNames = document.getElementById("meCoupleNames")
@@ -101,11 +96,6 @@ export function initMeView(ctx) {
   const calPrevBtn = document.getElementById("calPrevBtn")
   const calNextBtn = document.getElementById("calNextBtn")
   const checkInBtn = document.getElementById("checkInBtn")
-
-  const mePreviewA = document.getElementById("mePreviewA")
-  const mePreviewB = document.getElementById("mePreviewB")
-  const mePreviewAImg = document.getElementById("mePreviewAImg")
-  const mePreviewBImg = document.getElementById("mePreviewBImg")
 
   const inputYourNickname = document.getElementById("inputYourNickname")
   const inputPartnerNickname = document.getElementById("inputPartnerNickname")
@@ -139,8 +129,6 @@ export function initMeView(ctx) {
     return t
   })()
   let currentSummary = null
-  let previewUrls = []
-  let previewAllUrls = []
   let yourAvatarObjectUrl = ""
   let partnerAvatarObjectUrl = ""
 
@@ -469,55 +457,6 @@ export function initMeView(ctx) {
     renderCalendar()
   }
 
-  function revokeUrls(urls) {
-    for (const u of urls || []) {
-      try {
-        if (typeof u === "string" && u.startsWith("blob:")) URL.revokeObjectURL(u)
-      } catch {}
-    }
-  }
-
-  async function refreshPreviews() {
-    revokeUrls(previewUrls)
-    revokeUrls(previewAllUrls)
-    previewUrls = []
-    previewAllUrls = []
-
-    let items = []
-    try {
-      items = await photoStore.list()
-    } catch {
-      items = []
-    }
-
-    const urls = items.map((it) => URL.createObjectURL(it.blob))
-    const a = urls[0] || DEFAULT_PREVIEW_A
-    const b = urls[1] || DEFAULT_PREVIEW_B
-    previewAllUrls = urls.length >= 2 ? urls : urls.length === 1 ? [urls[0], DEFAULT_PREVIEW_B] : [DEFAULT_PREVIEW_A, DEFAULT_PREVIEW_B]
-    setImg(mePreviewAImg, a)
-    setImg(mePreviewBImg, b)
-    previewUrls = [a, b].filter(Boolean)
-
-    if (mePreviewA) mePreviewA.disabled = !a
-    if (mePreviewB) mePreviewB.disabled = !b
-
-    if (mePreviewA) {
-      mePreviewA.onclick = (e) => {
-        e.preventDefault()
-        if (!previewAllUrls.length) return
-        ctx.viewer?.show?.(previewAllUrls, 0)
-      }
-    }
-    if (mePreviewB) {
-      mePreviewB.onclick = (e) => {
-        e.preventDefault()
-        if (!previewAllUrls.length) return
-        ctx.viewer?.show?.(previewAllUrls, Math.min(1, previewAllUrls.length - 1))
-      }
-    }
-  }
-
-
   function renderAnniversaries(items) {
     anniversaryList.innerHTML = ""
     anniversaryEmpty.classList.toggle("hidden", (items?.length || 0) > 0)
@@ -654,7 +593,6 @@ export function initMeView(ctx) {
       applyProfile(p)
       await refreshAnniversaries()
       await refreshCheckins()
-      await refreshPreviews()
     }
   }
 }

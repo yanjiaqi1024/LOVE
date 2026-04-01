@@ -48,7 +48,8 @@ async def upload_avatar(
     if not ext:
         raise HTTPException(status_code=400, detail="不支持的图片格式")
 
-    name = f"{user.id}_{uuid.uuid4().hex}.{ext}"
+    prefix = user.couple_id or user.id
+    name = f"{prefix}_{uuid.uuid4().hex}.{ext}"
     target: Path = (AVATAR_DIR / name).resolve()
     if AVATAR_DIR not in target.parents:
         raise HTTPException(status_code=400, detail="非法文件路径")
@@ -94,7 +95,8 @@ async def upload_post_media(
         raise HTTPException(status_code=400, detail="不支持的文件格式")
 
     kind = "video" if file.content_type.startswith("video/") else "image"
-    name = f"{user.id}_{uuid.uuid4().hex}.{ext}"
+    prefix = user.couple_id or user.id
+    name = f"{prefix}_{uuid.uuid4().hex}.{ext}"
     target: Path = (POST_MEDIA_DIR / name).resolve()
     if POST_MEDIA_DIR not in target.parents:
         raise HTTPException(status_code=400, detail="非法文件路径")
