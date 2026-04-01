@@ -130,6 +130,9 @@ export const api = {
   async getCheckinSummary() {
     return request("/api/checkins/summary")
   },
+  async getCheckinPair() {
+    return request("/api/checkins/pair")
+  },
   async checkinToday() {
     return request("/api/checkins/today", { method: "POST" })
   },

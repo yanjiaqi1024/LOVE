@@ -108,15 +108,19 @@ export function initHomeView(ctx) {
     return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
   }
 
-  function applyCheckin(s) {
-    streakDays.textContent = String(s?.streakDays ?? 0)
-    totalCheckins.textContent = String(s?.totalDays ?? 0)
-    const checked = Boolean(s?.checkedInToday)
+  function applyCheckinPair(pair) {
+    const your = pair?.your || null
+    const partner = pair?.partner || null
+
+    streakDays.textContent = String(your?.streakDays ?? 0)
+    totalCheckins.textContent = partner ? String(partner?.streakDays ?? 0) : "—"
+
+    const checked = Boolean(your?.checkedInToday)
     checkinBtn.disabled = checked
     checkinBtn.classList.toggle("opacity-60", checked)
     if (checkinBtnText) checkinBtnText.textContent = checked ? "Checked In" : "Check-in for Today"
     if (checkinMeta) {
-      const last = s?.lastCheckinDate
+      const last = your?.lastCheckinDate
       checkinMeta.textContent = last ? `Last check-in: ${last}` : ""
     }
   }
@@ -173,8 +177,9 @@ function applyNextMilestone(list) {
     checkinBtn.classList.add("pop")
     window.setTimeout(() => checkinBtn.classList.remove("pop"), 320)
     try {
-      const s = await api.checkinToday()
-      applyCheckin(s)
+      await api.checkinToday()
+      const pair = await api.getCheckinPair()
+      applyCheckinPair(pair)
       toast("打卡成功", { tone: "success" })
     } catch (err) {
       toast(err.message || "打卡失败", { tone: "error" })
@@ -186,10 +191,10 @@ function applyNextMilestone(list) {
       const p = await loadProfile()
       applyProfile(p)
       try {
-        const s = await api.getCheckinSummary()
-        applyCheckin(s)
+        const pair = await api.getCheckinPair()
+        applyCheckinPair(pair)
       } catch (e) {
-        applyCheckin(null)
+        applyCheckinPair(null)
       }
       try {
         const list = await api.listAnniversaries()

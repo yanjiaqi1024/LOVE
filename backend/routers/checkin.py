@@ -42,6 +42,22 @@ def get_summary(
     return _summary(session, user.id)
 
 
+@router.get("/pair")
+def get_pair_summary(
+    session: Session = Depends(get_session),
+    user: User = Depends(get_current_user),
+):
+    partner = None
+    if user.couple_id is not None:
+        partner = session.exec(
+            select(User).where(User.couple_id == user.couple_id).where(User.id != user.id).order_by(User.id.asc())
+        ).first()
+    return {
+        "your": _summary(session, user.id),
+        "partner": _summary(session, partner.id) if partner is not None else None,
+    }
+
+
 @router.post("/today")
 def checkin_today(
     session: Session = Depends(get_session),
