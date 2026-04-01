@@ -25,7 +25,7 @@ export function initLoginView(ctx) {
   async function onRegister() {
     const u = username.value.trim()
     const p = password.value
-    if (!u || !p) return toast("请输入账号和密码", { tone: "error" })
+    if (!u || !p) return toast("请输入用户名和密码后加入我们的世界", { tone: "error" })
     try {
       await api.register(u, p)
       toast("注册成功，请登录", { tone: "success" })
