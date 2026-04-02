@@ -1,7 +1,8 @@
 import { api } from "../api.js"
-import { QUOTES } from "../constants.js"
+import { QUOTES, QUOTES_EN } from "../constants.js"
+import { getIntlLocale, getLocale, t } from "../i18n.js"
 import { cacheStore } from "../storage.js"
-import { toast } from "../ui.js"
+import { setHeaderBrand, setHeaderGender, toast } from "../ui.js"
 
 function startOfToday() {
   const d = new Date()
@@ -33,10 +34,11 @@ function greetingText() {
 }
 
 function pickQuote(prev) {
-  if (!QUOTES.length) return ""
-  if (QUOTES.length === 1) return QUOTES[0]
+  const list = getLocale() === "en" ? QUOTES_EN : QUOTES
+  if (!list.length) return ""
+  if (list.length === 1) return list[0]
   let q = prev
-  while (q === prev) q = QUOTES[Math.floor(Math.random() * QUOTES.length)]
+  while (q === prev) q = list[Math.floor(Math.random() * list.length)]
   return q
 }
 
@@ -61,7 +63,7 @@ export function initHomeView(ctx) {
 
   let currentQuote = pickQuote("")
   quoteText.textContent = currentQuote
-  if (quoteAuthor) quoteAuthor.textContent = "— Our Sanctuary"
+  if (quoteAuthor) quoteAuthor.textContent = t("app.brandAuthor")
 
   nextQuoteBtn.addEventListener("click", (e) => {
     e.preventDefault()
@@ -82,8 +84,8 @@ export function initHomeView(ctx) {
   }
 
   function applyProfile(p) {
-    const a = p?.yourNickname?.trim() || "Alex"
-    const b = p?.partnerNickname?.trim() || "Sarah"
+    const a = p?.yourNickname?.trim() || t("album.you")
+    const b = p?.partnerNickname?.trim() || t("album.partner")
     loveDays.textContent = String(calcLoveDays(p?.loveDate || ""))
     if (loveDateBadge) loveDateBadge.textContent = formatDateBadge(p?.loveDate)
     if (homeNameYour) homeNameYour.textContent = a
@@ -92,7 +94,10 @@ export function initHomeView(ctx) {
     const partnerAvatar = p?.partnerAvatar || ""
     applyAvatar(homeAvatarYourImg, yourAvatar)
     applyAvatar(homeAvatarPartnerImg, partnerAvatar)
-    applyAvatar(headerAvatarImg, yourAvatar || partnerAvatar)
+    const logo = String(p?.spaceLogo || "").trim() || yourAvatar || partnerAvatar
+    setHeaderBrand({ name: p?.spaceName || "", logoUrl: logo })
+    setHeaderGender(p?.yourGender || "")
+    applyAvatar(headerAvatarImg, logo)
   }
 
   function applyAvatar(el, url) {
@@ -102,10 +107,10 @@ export function initHomeView(ctx) {
   }
 
   function formatDateBadge(loveDateStr) {
-    if (!loveDateStr) return "—"
+    if (!loveDateStr) return t("me.noData")
     const d = new Date(`${loveDateStr}T00:00:00`)
-    if (Number.isNaN(d.getTime())) return "—"
-    return d.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+    if (Number.isNaN(d.getTime())) return t("me.noData")
+    return d.toLocaleDateString(getIntlLocale(), { year: "numeric", month: "long", day: "numeric" })
   }
 
   function applyCheckinPair(pair) {
@@ -118,10 +123,10 @@ export function initHomeView(ctx) {
     const checked = Boolean(your?.checkedInToday)
     checkinBtn.disabled = checked
     checkinBtn.classList.toggle("opacity-60", checked)
-    if (checkinBtnText) checkinBtnText.textContent = checked ? "Checked In" : "Check-in for Today"
+    if (checkinBtnText) checkinBtnText.textContent = checked ? t("home.checkedIn") : t("home.checkinToday")
     if (checkinMeta) {
       const last = your?.lastCheckinDate
-      checkinMeta.textContent = last ? `Last check-in: ${last}` : ""
+      checkinMeta.textContent = last ? t("home.lastCheckin", { date: last }) : ""
     }
   }
 
@@ -161,13 +166,13 @@ function applyNextMilestone(list) {
     .sort((a, b) => a.daysLeft - b.daysLeft)
 
     if (!future.length) {
-      nextMilestoneName.textContent = "—"
-      nextMilestoneDaysLeft.textContent = "—"
+      nextMilestoneName.textContent = t("me.noData")
+      nextMilestoneDaysLeft.textContent = t("me.noData")
       return
     }
 
     const first = future[0]
-    nextMilestoneName.textContent = first.name || "Milestone"
+    nextMilestoneName.textContent = first.name || t("home.nextMilestone")
     nextMilestoneDaysLeft.textContent = String(first.daysLeft)
   }
 
@@ -180,9 +185,9 @@ function applyNextMilestone(list) {
       await api.checkinToday()
       const pair = await api.getCheckinPair()
       applyCheckinPair(pair)
-      toast("打卡成功", { tone: "success" })
+      toast(t("toast.checkinOk"), { tone: "success" })
     } catch (err) {
-      toast(err.message || "打卡失败", { tone: "error" })
+      toast(err.message || t("toast.checkinFail"), { tone: "error" })
     }
   })
 

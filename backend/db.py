@@ -6,13 +6,14 @@ from sqlalchemy import inspect, text
 from sqlmodel import Session, SQLModel, create_engine
 
 DATABASE_URL = os.environ.get("COUPLESPACE_DATABASE_URL")
-DB_PATH = os.environ.get("COUPLESPACE_DB_PATH", os.path.join(os.path.dirname(__file__), "app.db"))
-DB_URL = DATABASE_URL or f"sqlite:///{DB_PATH}"
+if not DATABASE_URL:
+    raise RuntimeError(
+        "COUPLESPACE_DATABASE_URL 未设置：已禁用 SQLite 回退。请配置 MySQL 连接串，例如 "
+        "mysql+pymysql://user:password@127.0.0.1:3306/db?charset=utf8mb4"
+    )
+DB_URL = DATABASE_URL
 
-if DB_URL.startswith("sqlite:///"):
-    engine = create_engine(DB_URL, connect_args={"check_same_thread": False}, pool_pre_ping=True)
-else:
-    engine = create_engine(DB_URL, pool_pre_ping=True)
+engine = create_engine(DB_URL, pool_pre_ping=True)
 
 
 def _q(name: str) -> str:
@@ -39,6 +40,16 @@ def _ensure_columns() -> None:
             continue
         if "couple_id" not in table_cols[t]:
             alters.append((t, "couple_id", "INTEGER"))
+        if t == "profile" and "user_id" not in table_cols[t]:
+            alters.append((t, "user_id", "INTEGER"))
+        if t == "profile" and "space_name" not in table_cols[t]:
+            alters.append((t, "space_name", "VARCHAR(64)"))
+        if t == "profile" and "space_logo" not in table_cols[t]:
+            alters.append((t, "space_logo", "VARCHAR(1024)"))
+        if t == "profile" and "your_gender" not in table_cols[t]:
+            alters.append((t, "your_gender", "VARCHAR(16)"))
+        if t == "profile" and "partner_gender" not in table_cols[t]:
+            alters.append((t, "partner_gender", "VARCHAR(16)"))
         if t in ("post", "postmedia") and "user_id" not in table_cols[t]:
             alters.append((t, "user_id", "INTEGER"))
 

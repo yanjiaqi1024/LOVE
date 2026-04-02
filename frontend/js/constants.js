@@ -1,7 +1,8 @@
 export const STORAGE_KEYS = {
   token: "cs_token",
   apiBase: "cs_api_base",
-  profileCache: "cs_profile_cache"
+  profileCache: "cs_profile_cache",
+  locale: "cs_locale"
 }
 
 export const DEFAULT_API_BASE = "http://localhost:8000"
@@ -17,4 +18,17 @@ export const QUOTES = [
   "你是我最确定的心动。",
   "想和你把日子过成诗。",
   "愿每个明天，都有你在身边。"
+]
+
+export const QUOTES_EN = [
+  "Love is the little heartbeats you can’t hide.",
+  "Your smile makes the whole world softer.",
+  "Turn ordinary days into our shared romance.",
+  "I want to share everything with you, today too.",
+  "You are the brightest light in my small universe.",
+  "Every day together is worth celebrating.",
+  "We’re not racing time—we’re going far together.",
+  "You are my most certain butterflies.",
+  "Let’s live our days like poetry.",
+  "May every tomorrow have you by my side."
 ]

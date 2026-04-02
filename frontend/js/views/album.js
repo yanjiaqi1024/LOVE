@@ -1,6 +1,7 @@
 import { api } from "../api.js"
+import { getIntlLocale, t } from "../i18n.js"
 import { cacheStore } from "../storage.js"
-import { confirmModal, toast } from "../ui.js"
+import { confirmModal, setHeaderBrand, setHeaderGender, toast } from "../ui.js"
 
 function setImg(el, url) {
   if (!el) return
@@ -20,23 +21,18 @@ function relativeTime(ts) {
   const now = new Date()
   const diffMs = now.getTime() - d.getTime()
   const min = Math.floor(diffMs / (60 * 1000))
-  if (min < 1) return "刚刚"
-  if (min < 60) return `${min}分钟前`
+  if (min < 1) return t("album.justNow")
+  if (min < 60) return t("album.minutesAgo", { min })
   const hr = Math.floor(min / 60)
-  if (hr < 24) return `${hr}小时前`
+  if (hr < 24) return t("album.hoursAgo", { hr })
   const today = startOfToday()
   const dayDiff = Math.floor((today.getTime() - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / (24 * 60 * 60 * 1000))
-  if (dayDiff === 1) return "昨天"
-  return d.toLocaleDateString("zh-CN", { year: "numeric", month: "2-digit", day: "2-digit" })
+  if (dayDiff === 1) return t("album.yesterday")
+  return d.toLocaleDateString(getIntlLocale(), { year: "numeric", month: "2-digit", day: "2-digit" })
 }
 
 function pickPrompt() {
-  const prompts = [
-    "还记得第一次在那家咖啡店见面的下午吗？",
-    "今天最想把哪一刻存进回忆里？",
-    "如果把今天写成一句话，会是什么？",
-    "最近一次让你心动的瞬间是什么？"
-  ]
+  const prompts = [t("album.prompt.1"), t("album.prompt.2"), t("album.prompt.3"), t("album.prompt.4")]
   return prompts[Math.floor(Math.random() * prompts.length)]
 }
 
@@ -94,7 +90,12 @@ export function initAlbumView(ctx) {
   }
 
   function applyProfile(p) {
-    setImg(headerAvatarImg, p?.yourAvatar || p?.partnerAvatar || "")
+    const yourAvatar = p?.yourAvatar || ""
+    const partnerAvatar = p?.partnerAvatar || ""
+    const logo = String(p?.spaceLogo || "").trim() || yourAvatar || partnerAvatar || ""
+    setHeaderBrand({ name: p?.spaceName || "", logoUrl: logo })
+    setHeaderGender(p?.yourGender || "")
+    setImg(headerAvatarImg, logo)
   }
 
   function render(posts, profile) {
@@ -102,8 +103,8 @@ export function initAlbumView(ctx) {
     feed.innerHTML = ""
     empty?.classList.toggle("hidden", (posts?.length || 0) > 0)
 
-    const yourName = profile?.yourNickname?.trim() || "你"
-    const partnerName = profile?.partnerNickname?.trim() || "TA"
+    const yourName = profile?.yourNickname?.trim() || t("album.you")
+    const partnerName = profile?.partnerNickname?.trim() || t("album.partner")
     const yourAvatar = profile?.yourAvatar || ""
     const partnerAvatar = profile?.partnerAvatar || ""
 
@@ -148,14 +149,14 @@ export function initAlbumView(ctx) {
         delBtn.innerHTML = '<span class="material-symbols-outlined text-[20px]">delete</span>'
         delBtn.addEventListener("click", async (e) => {
           e.preventDefault()
-          const ok = await confirmModal({ title: "删除帖子", body: "确定删除这条回忆吗？" })
+          const ok = await confirmModal({ title: t("album.deletePost"), body: t("album.deletePostBody") })
           if (!ok) return
           try {
             await api.deletePost(p.id)
-            toast("已删除", { tone: "success" })
+            toast(t("album.deleted"), { tone: "success" })
             await ctx.album.refresh()
           } catch (err) {
-            toast(err.message || "删除失败", { tone: "error" })
+            toast(err.message || t("album.deleteFail"), { tone: "error" })
           }
         })
         head.appendChild(delBtn)

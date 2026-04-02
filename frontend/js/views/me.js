@@ -1,6 +1,8 @@
 import { api } from "../api.js"
 import { cacheStore } from "../storage.js"
-import { confirmModal, toast } from "../ui.js"
+import { confirmModal, enhanceGenderSelect, setHeaderBrand, setHeaderGender, toast } from "../ui.js"
+import { getIntlLocale, t } from "../i18n.js"
+import { onLogout } from "../app.js"
 
 function startOfToday() {
   const d = new Date()
@@ -74,9 +76,21 @@ function setImg(el, url) {
   else el.removeAttribute("src")
 }
 
+function setImgs(els, url) {
+  if (!els) return
+  if (Array.isArray(els)) {
+    for (const el of els) setImg(el, url)
+    return
+  }
+  setImg(els, url)
+}
+
 export function initMeView(ctx) {
   const meAvatarYourImg = document.getElementById("meAvatarYourImg")
   const meAvatarPartnerImg = document.getElementById("meAvatarPartnerImg")
+  const editYourAvatarPreviewImg = document.getElementById("editYourAvatarPreviewImg")
+  const editYourAvatarPreviewImg2 = document.getElementById("editYourAvatarPreviewImg2")
+  const editPartnerAvatarPreviewImg = document.getElementById("editPartnerAvatarPreviewImg")
   const meCoupleNames = document.getElementById("meCoupleNames")
   const meSinceText = document.getElementById("meSinceText")
   const meMetDateText = document.getElementById("meMetDateText")
@@ -99,6 +113,8 @@ export function initMeView(ctx) {
 
   const inputYourNickname = document.getElementById("inputYourNickname")
   const inputPartnerNickname = document.getElementById("inputPartnerNickname")
+  const inputYourGender = document.getElementById("inputYourGender")
+  const inputPartnerGender = document.getElementById("inputPartnerGender")
   const inputMetDate = document.getElementById("inputMetDate")
   const inputTogetherDate = document.getElementById("inputTogetherDate")
   const inputSlogan = document.getElementById("inputSlogan")
@@ -108,6 +124,10 @@ export function initMeView(ctx) {
   const inputPartnerAvatarFile = document.getElementById("inputPartnerAvatarFile")
   const yourAvatarFileName = document.getElementById("yourAvatarFileName")
   const partnerAvatarFileName = document.getElementById("partnerAvatarFileName")
+  const inputSpaceName = document.getElementById("inputSpaceName")
+  const inputSpaceLogo = document.getElementById("inputSpaceLogo")
+  const inputSpaceLogoFile = document.getElementById("inputSpaceLogoFile")
+  const spaceLogoFileName = document.getElementById("spaceLogoFileName")
   const saveProfileBtn = document.getElementById("saveProfileBtn")
 
   const addAnniversaryBtn = document.getElementById("addAnniversaryBtn")
@@ -121,6 +141,15 @@ export function initMeView(ctx) {
   const anniversaryModalCancel = document.getElementById("anniversaryModalCancel")
   const anniversaryModalOk = document.getElementById("anniversaryModalOk")
 
+  const meLogoutBtn = document.getElementById("meLogoutBtn")
+  if (inputYourGender) enhanceGenderSelect(inputYourGender)
+  if (inputPartnerGender) enhanceGenderSelect(inputPartnerGender)
+  if (inputYourGender) {
+    inputYourGender.addEventListener("change", () => {
+      setHeaderGender(inputYourGender.value || "")
+    })
+  }
+
   let currentProfile = null
   let calendarCursor = (() => {
     const t = new Date()
@@ -131,6 +160,7 @@ export function initMeView(ctx) {
   let currentSummary = null
   let yourAvatarObjectUrl = ""
   let partnerAvatarObjectUrl = ""
+  let spaceLogoObjectUrl = ""
 
   async function loadProfile() {
     try {
@@ -146,30 +176,42 @@ export function initMeView(ctx) {
 
   function applyProfile(p) {
     currentProfile = p
-    const a = p?.yourNickname?.trim() || "你"
-    const b = p?.partnerNickname?.trim() || "TA"
+    const a = p?.yourNickname?.trim() || t("album.you")
+    const b = p?.partnerNickname?.trim() || t("album.partner")
     if (meCoupleNames) meCoupleNames.textContent = `${a} & ${b}`
     if (meSinceText) {
       const y = yearText(p?.loveDate || "")
-      meSinceText.textContent = y ? `自 ${y} 年相恋` : "—"
+      meSinceText.textContent = y ? t("me.sinceYear", { year: y }) : t("me.noData")
     }
     if (meMetDateText) meMetDateText.textContent = formatStoryDate(p?.metDate || "")
     if (meLoveDateText) meLoveDateText.textContent = formatStoryDate(p?.loveDate || "")
-    if (meMetNote) meMetNote.textContent = p?.metDate ? "第一次遇见的那天" : "—"
-    if (meLoveNote) meLoveNote.textContent = p?.loveDate ? "我们约定永远的那天" : "—"
-    if (meSloganText) meSloganText.textContent = p?.slogan?.trim() || "—"
+    if (meMetNote) meMetNote.textContent = p?.metDate ? t("me.metNote") : t("me.noData")
+    if (meLoveNote) meLoveNote.textContent = p?.loveDate ? t("me.loveNote") : t("me.noData")
+    if (meSloganText) meSloganText.textContent = p?.slogan?.trim() || t("me.noData")
 
     inputYourNickname.value = p?.yourNickname || ""
     inputPartnerNickname.value = p?.partnerNickname || ""
+    inputYourGender.value = p?.yourGender || ""
+    inputPartnerGender.value = p?.partnerGender || ""
+    try {
+      inputYourGender.dispatchEvent(new Event("change", { bubbles: true }))
+    } catch {}
+    try {
+      inputPartnerGender.dispatchEvent(new Event("change", { bubbles: true }))
+    } catch {}
     inputMetDate.value = p?.metDate || ""
     inputTogetherDate.value = p?.loveDate || ""
     inputSlogan.value = p?.slogan || ""
+    inputSpaceName.value = p?.spaceName || ""
+    inputSpaceLogo.value = p?.spaceLogo || ""
     inputYourAvatar.value = p?.yourAvatar || ""
     inputPartnerAvatar.value = p?.partnerAvatar || ""
     if (inputYourAvatarFile) inputYourAvatarFile.value = ""
     if (inputPartnerAvatarFile) inputPartnerAvatarFile.value = ""
-    if (yourAvatarFileName) yourAvatarFileName.textContent = "未选择图片"
-    if (partnerAvatarFileName) partnerAvatarFileName.textContent = "未选择图片"
+    if (inputSpaceLogoFile) inputSpaceLogoFile.value = ""
+    if (yourAvatarFileName) yourAvatarFileName.textContent = t("me.unselected")
+    if (partnerAvatarFileName) partnerAvatarFileName.textContent = t("me.unselected")
+    if (spaceLogoFileName) spaceLogoFileName.textContent = t("me.unselected")
 
     try {
       if (yourAvatarObjectUrl?.startsWith("blob:")) URL.revokeObjectURL(yourAvatarObjectUrl)
@@ -177,14 +219,22 @@ export function initMeView(ctx) {
     try {
       if (partnerAvatarObjectUrl?.startsWith("blob:")) URL.revokeObjectURL(partnerAvatarObjectUrl)
     } catch {}
+    try {
+      if (spaceLogoObjectUrl?.startsWith("blob:")) URL.revokeObjectURL(spaceLogoObjectUrl)
+    } catch {}
     yourAvatarObjectUrl = ""
     partnerAvatarObjectUrl = ""
+    spaceLogoObjectUrl = ""
 
-    setImg(meAvatarYourImg, p?.yourAvatar || "")
-    setImg(meAvatarPartnerImg, p?.partnerAvatar || "")
+    setImgs([meAvatarYourImg, editYourAvatarPreviewImg, editYourAvatarPreviewImg2], p?.yourAvatar || "")
+    setImgs([meAvatarPartnerImg, editPartnerAvatarPreviewImg], p?.partnerAvatar || "")
+
+    const logo = String(p?.spaceLogo || "").trim() || p?.yourAvatar || p?.partnerAvatar || ""
+    setHeaderBrand({ name: p?.spaceName || "", logoUrl: logo })
+    setHeaderGender(p?.yourGender || "")
   }
 
-  function handleAvatarFileChange(which, inputEl, imgEl, nameEl, getFallbackUrl) {
+  function handleAvatarFileChange(which, inputEl, imgEls, nameEl, getFallbackUrl) {
     if (!inputEl) return
     inputEl.addEventListener("change", () => {
       const f = inputEl.files?.[0]
@@ -195,31 +245,69 @@ export function initMeView(ctx) {
       if (which === "your") yourAvatarObjectUrl = ""
       else partnerAvatarObjectUrl = ""
       if (!f) {
-        if (nameEl) nameEl.textContent = "未选择图片"
-        setImg(imgEl, getFallbackUrl?.() || "")
+        if (nameEl) nameEl.textContent = t("me.unselected")
+        setImgs(imgEls, getFallbackUrl?.() || "")
         return
       }
       const u = URL.createObjectURL(f)
       if (which === "your") yourAvatarObjectUrl = u
       else partnerAvatarObjectUrl = u
-      if (nameEl) nameEl.textContent = f.name || "已选择图片"
-      setImg(imgEl, u)
+      if (nameEl) nameEl.textContent = f.name || t("me.fileSelected")
+      setImgs(imgEls, u)
     })
   }
 
-  handleAvatarFileChange("your", inputYourAvatarFile, meAvatarYourImg, yourAvatarFileName, () => inputYourAvatar?.value || "")
-  handleAvatarFileChange("partner", inputPartnerAvatarFile, meAvatarPartnerImg, partnerAvatarFileName, () => inputPartnerAvatar?.value || "")
+  handleAvatarFileChange(
+    "your",
+    inputYourAvatarFile,
+    [meAvatarYourImg, editYourAvatarPreviewImg, editYourAvatarPreviewImg2],
+    yourAvatarFileName,
+    () => inputYourAvatar?.value || ""
+  )
+  handleAvatarFileChange(
+    "partner",
+    inputPartnerAvatarFile,
+    [meAvatarPartnerImg, editPartnerAvatarPreviewImg],
+    partnerAvatarFileName,
+    () => inputPartnerAvatar?.value || ""
+  )
+
+  if (inputSpaceLogoFile) {
+    inputSpaceLogoFile.addEventListener("change", () => {
+      const f = inputSpaceLogoFile.files?.[0]
+      try {
+        if (spaceLogoObjectUrl?.startsWith("blob:")) URL.revokeObjectURL(spaceLogoObjectUrl)
+      } catch {}
+      spaceLogoObjectUrl = ""
+      if (!f) {
+        if (spaceLogoFileName) spaceLogoFileName.textContent = t("me.unselected")
+        const url = String(inputSpaceLogo?.value || "").trim()
+        if (url) setHeaderBrand({ name: inputSpaceName?.value || "", logoUrl: url })
+        return
+      }
+      const u = URL.createObjectURL(f)
+      spaceLogoObjectUrl = u
+      if (spaceLogoFileName) spaceLogoFileName.textContent = f.name || t("me.fileSelected")
+      setHeaderBrand({ name: inputSpaceName?.value || "", logoUrl: u })
+    })
+  }
 
   saveProfileBtn.addEventListener("click", async (e) => {
     e.preventDefault()
     try {
       saveProfileBtn.disabled = true
+      let spaceLogoUrl = inputSpaceLogo.value.trim()
       let yourAvatarUrl = inputYourAvatar.value.trim()
       let partnerAvatarUrl = inputPartnerAvatar.value.trim()
 
+      const logoFile = inputSpaceLogoFile?.files?.[0]
       const yourFile = inputYourAvatarFile?.files?.[0]
       const partnerFile = inputPartnerAvatarFile?.files?.[0]
 
+      if (logoFile) {
+        const r = await api.uploadAvatar(logoFile)
+        spaceLogoUrl = r?.url || spaceLogoUrl
+      }
       if (yourFile) {
         const r = await api.uploadAvatar(yourFile)
         yourAvatarUrl = r?.url || yourAvatarUrl
@@ -230,6 +318,10 @@ export function initMeView(ctx) {
       }
 
       const payload = {
+        spaceName: inputSpaceName.value.trim(),
+        spaceLogo: spaceLogoUrl,
+        yourGender: inputYourGender.value || "",
+        partnerGender: inputPartnerGender.value || "",
         yourNickname: inputYourNickname.value.trim(),
         partnerNickname: inputPartnerNickname.value.trim(),
         yourAvatar: yourAvatarUrl,
@@ -241,10 +333,10 @@ export function initMeView(ctx) {
       const p = await api.putProfile(payload)
       cacheStore.setProfile(p)
       applyProfile(p)
-      toast("已保存", { tone: "success" })
+      toast(t("toast.saved"), { tone: "success" })
       if (location.hash === "#home") ctx.home?.refresh?.()
     } catch (err) {
-      toast(err.message || "保存失败", { tone: "error" })
+      toast(err.message || t("toast.saveFail"), { tone: "error" })
     } finally {
       saveProfileBtn.disabled = false
     }
@@ -271,16 +363,16 @@ export function initMeView(ctx) {
     const first = future[0]
     const second = future[1]
 
-    if (milestonePrimaryDays) milestonePrimaryDays.textContent = first ? String(first._daysLeft) : "—"
+    if (milestonePrimaryDays) milestonePrimaryDays.textContent = first ? String(first._daysLeft) : t("me.noData")
     if (milestonePrimaryDesc) {
-      milestonePrimaryDesc.textContent = first ? `${first._nextStr} · 距离${first.name}` : "—"
+      milestonePrimaryDesc.textContent = first ? t("me.milestoneDesc", { next: first._nextStr, name: first.name }) : t("me.noData")
     }
 
-    if (milestoneSecondaryName) milestoneSecondaryName.textContent = first ? `${first._nextStr} · ${first.name}` : "—"
-    if (milestoneSecondaryDays) milestoneSecondaryDays.textContent = first ? String(first._daysLeft) : "—"
+    if (milestoneSecondaryName) milestoneSecondaryName.textContent = first ? t("me.milestoneDescNoName", { next: first._nextStr, name: first.name }) : t("me.noData")
+    if (milestoneSecondaryDays) milestoneSecondaryDays.textContent = first ? String(first._daysLeft) : t("me.noData")
   }
 
-  function anniversaryModal({ title = "新增纪念日", initialName = "", initialDay = "" } = {}) {
+  function anniversaryModal({ title = t("ann.modal.create"), initialName = "", initialDay = "" } = {}) {
     if (
       !anniversaryModalRoot ||
       !anniversaryModalTitle ||
@@ -314,12 +406,12 @@ export function initMeView(ctx) {
         const name = anniversaryNameInput.value.trim()
         const day = anniversaryDayInput.value
         if (!name) {
-          toast("请填写纪念日名称", { tone: "error" })
+          toast(t("ann.needName"), { tone: "error" })
           anniversaryNameInput.focus()
           return
         }
         if (!day) {
-          toast("请选择日期", { tone: "error" })
+          toast(t("ann.needDay"), { tone: "error" })
           anniversaryDayInput.focus()
           return
         }
@@ -364,9 +456,7 @@ export function initMeView(ctx) {
   }
 
   function monthTitle(d) {
-    const y = d.getFullYear()
-    const m = d.getMonth() + 1
-    return `${y}年${m}月`
+    return d.toLocaleDateString(getIntlLocale(), { year: "numeric", month: "long" })
   }
 
   function clearCalendar() {
@@ -396,13 +486,13 @@ export function initMeView(ctx) {
 
     const today = startOfToday()
     const isThisMonth = y === today.getFullYear() && m === today.getMonth()
-    const checkedToday = Boolean(currentSummary?.checkedInToday)
 
     for (let day = 1; day <= totalDays; day++) {
       const cell = document.createElement("div")
       cell.className = "relative h-8 flex flex-col items-center justify-center"
 
       const date = new Date(y, m, day)
+      const dateStr = isoDate(date)
       const span = document.createElement("span")
       span.className = "text-xs font-body text-on-surface-variant"
       span.textContent = String(day)
@@ -410,7 +500,7 @@ export function initMeView(ctx) {
       const isToday = isThisMonth && day === today.getDate()
       if (isToday) {
         span.className =
-          "text-xs font-body font-bold text-primary ring-1 ring-primary/30 rounded-full w-6 h-6 flex items-center justify-center mx-auto bg-primary-container/20"
+          "text-xs font-body font-bold text-primary ring-1 ring-primary/30 rounded-full w-6 h-6 flex items-center justify-center mx-auto bg-primary-container/20 z-10"
       }
 
       const isFuture = date.getTime() > today.getTime()
@@ -420,11 +510,41 @@ export function initMeView(ctx) {
 
       cell.appendChild(span)
 
-      if (isToday && checkedToday) {
+      // 检查当前日期是否有打卡记录
+      const history = currentSummary?.history || {}
+      const record = history[dateStr]
+      if (record) {
+        const hasYour = Boolean(record.your)
+        const hasPartner = Boolean(record.partner)
+        
+        if (hasYour || hasPartner) {
+          const heart = document.createElement("span")
+          heart.className = "absolute -bottom-1 material-symbols-outlined text-[10px] text-primary"
+          
+          if (hasYour && hasPartner) {
+            // 两人都打卡：完整爱心
+            heart.style.fontVariationSettings = "'FILL' 1"
+            heart.textContent = "favorite"
+          } else {
+            // 单人打卡：半心 (使用 CSS 裁剪实现半心效果)
+            heart.style.fontVariationSettings = "'FILL' 1"
+            heart.textContent = "favorite"
+            // 根据是谁打卡决定显示左半边还是右半边
+            if (hasYour) {
+              heart.style.clipPath = "polygon(0 0, 50% 0, 50% 100%, 0 100%)"
+            } else {
+              heart.style.clipPath = "polygon(50% 0, 100% 0, 100% 100%, 50% 100%)"
+            }
+          }
+          cell.appendChild(heart)
+        }
+      } else if (isToday && Boolean(currentSummary?.checkedInToday)) {
+        // 兼容旧逻辑：如果今天是当月，且 checkedInToday 为 true，但 history 里还没数据
         const heart = document.createElement("span")
         heart.className = "absolute -bottom-1 material-symbols-outlined text-[10px] text-primary"
         heart.style.fontVariationSettings = "'FILL' 1"
         heart.textContent = "favorite"
+        heart.style.clipPath = "polygon(0 0, 50% 0, 50% 100%, 0 100%)" // 自己打卡算半心
         cell.appendChild(heart)
       }
 
@@ -437,11 +557,11 @@ export function initMeView(ctx) {
     const checked = Boolean(currentSummary?.checkedInToday)
     checkInBtn.disabled = checked
     if (checked) {
-      checkInBtn.innerHTML = '<span class="material-symbols-outlined text-sm">task_alt</span> 今日已打卡'
+      checkInBtn.innerHTML = `<span class="material-symbols-outlined text-sm">task_alt</span> ${t("me.checkinDone")}`
       checkInBtn.classList.remove("bg-primary-container", "text-on-primary-container")
       checkInBtn.classList.add("bg-surface-container-highest", "text-on-surface")
     } else {
-      checkInBtn.innerHTML = '<span class="material-symbols-outlined text-sm">draw</span> 记录今日心情'
+      checkInBtn.innerHTML = `<span class="material-symbols-outlined text-sm">draw</span> ${t("me.checkinRecord")}`
       checkInBtn.classList.remove("bg-surface-container-highest", "text-on-surface")
       checkInBtn.classList.add("bg-primary-container", "text-on-primary-container")
     }
@@ -481,36 +601,36 @@ export function initMeView(ctx) {
       const editBtn = document.createElement("button")
       editBtn.className =
         "text-xs px-4 py-2 rounded-full bg-surface-container-lowest border border-outline-variant/25 text-primary font-bold active:scale-95 transition-all duration-300 whitespace-nowrap"
-      editBtn.textContent = "编辑"
+      editBtn.textContent = t("me.edit")
 
       const delBtn = document.createElement("button")
       delBtn.className =
         "text-xs px-4 py-2 rounded-full bg-surface-container-lowest border border-outline-variant/25 active:scale-95 transition-all duration-300 text-error font-bold whitespace-nowrap"
-      delBtn.textContent = "删除"
+      delBtn.textContent = t("me.delete")
 
       editBtn.addEventListener("click", async (e) => {
         e.preventDefault()
-        const v = await anniversaryModal({ title: "编辑纪念日", initialName: it.name, initialDay: it.day })
+        const v = await anniversaryModal({ title: t("ann.modal.edit"), initialName: it.name, initialDay: it.day })
         if (!v) return
         try {
           await api.updateAnniversary(it.id, { name: v.name, day: v.day })
-          toast("已更新", { tone: "success" })
+          toast(t("toast.updated"), { tone: "success" })
           await refreshAnniversaries()
         } catch (err) {
-          toast(err.message || "更新失败", { tone: "error" })
+          toast(err.message || t("toast.updateFail"), { tone: "error" })
         }
       })
 
       delBtn.addEventListener("click", async (e) => {
         e.preventDefault()
-        const ok = await confirmModal({ title: "删除纪念日", body: `确定删除「${it.name}」吗？` })
+        const ok = await confirmModal({ title: t("ann.deleteTitle"), body: t("ann.deleteBody", { name: it.name }) })
         if (!ok) return
         try {
           await api.deleteAnniversary(it.id)
-          toast("已删除", { tone: "success" })
+          toast(t("toast.deleted"), { tone: "success" })
           await refreshAnniversaries()
         } catch (err) {
-          toast(err.message || "删除失败", { tone: "error" })
+          toast(err.message || t("toast.deleteFail"), { tone: "error" })
         }
       })
 
@@ -535,10 +655,10 @@ export function initMeView(ctx) {
     if (!v) return
     try {
       await api.createAnniversary(v.name, v.day)
-      toast("已新增", { tone: "success" })
+      toast(t("toast.added"), { tone: "success" })
       await refreshAnniversaries()
     } catch (err) {
-      toast(err.message || "新增失败", { tone: "error" })
+      toast(err.message || t("toast.addFail"), { tone: "error" })
     }
   })
 
@@ -577,13 +697,26 @@ export function initMeView(ctx) {
       if (checkInBtn.disabled) return
       try {
         currentSummary = await api.checkinToday()
-        toast("今日已记录", { tone: "success" })
+        toast(t("toast.todayRecorded"), { tone: "success" })
       } catch (err) {
-        toast(err.message || "记录失败", { tone: "error" })
+        toast(err.message || t("toast.recordFail"), { tone: "error" })
       }
       setCheckinButtonState()
       renderCalendar()
       if (location.hash === "#home") ctx.home?.refresh?.()
+    })
+  }
+
+  if (meLogoutBtn) {
+    meLogoutBtn.addEventListener("click", async (e) => {
+      e.preventDefault()
+      const ok = await confirmModal({
+        title: t("confirm.logout.title"),
+        body: t("confirm.logout.body"),
+        okText: t("confirm.logout.ok"),
+        cancelText: t("modal.cancel")
+      })
+      if (ok) onLogout()
     })
   }
 

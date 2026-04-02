@@ -1,4 +1,5 @@
 import { api } from "../api.js"
+import { t } from "../i18n.js"
 import { toast } from "../ui.js"
 
 function buildInviteUrl(inviteCode) {
@@ -59,16 +60,16 @@ export function initInviteView() {
 
       if (navigator.share) {
         try {
-          await navigator.share({ title: "情侣空间邀请", text: "快来加入我们的情侣空间吧～", url })
-          toast("已调起分享", { tone: "success" })
+          await navigator.share({ title: t("invite.shareTitle"), text: t("invite.shareText"), url })
+          toast(t("invite.shared"), { tone: "success" })
           return
         } catch {}
       }
 
       const ok = await copyText(url)
-      toast(ok ? "链接已复制，可以发给 TA 了" : "生成成功，请手动复制链接", { tone: ok ? "success" : "error" })
+      toast(ok ? t("invite.copied") : t("invite.copyFallback"), { tone: ok ? "success" : "error" })
     } catch (err) {
-      toast(err?.message || "生成邀请链接失败", { tone: "error" })
+      toast(err?.message || t("invite.fail"), { tone: "error" })
     }
   })
 

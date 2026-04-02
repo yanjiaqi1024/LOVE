@@ -22,7 +22,14 @@ class User(SQLModel, table=True):
 
 class Profile(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(index=True, foreign_key="user.id")
     couple_id: int = Field(index=True, foreign_key="couple.id", unique=True)
+
+    space_name: str = Field(default="", max_length=64)
+    space_logo: str = Field(default="", max_length=1024)
+
+    your_gender: str = Field(default="", max_length=16)
+    partner_gender: str = Field(default="", max_length=16)
 
     your_nickname: str = ""
     partner_nickname: str = ""

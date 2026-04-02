@@ -1,6 +1,7 @@
 import { clearAuth } from "./api.js"
 import { tokenStore } from "./storage.js"
-import { confirmModal, setActiveTab, setHeaderTitle, setLogoutVisible, toast, viewer as createViewer } from "./ui.js"
+import { confirmModal, setActiveTab, setHeaderTitle, toast, viewer as createViewer } from "./ui.js"
+import { initI18n, onLocaleChange, t } from "./i18n.js"
 import { initAlbumView } from "./views/album.js"
 import { initHomeView } from "./views/home.js"
 import { initInviteView } from "./views/invite.js"
@@ -9,12 +10,12 @@ import { initMeView } from "./views/me.js"
 import { initPostView } from "./views/post.js"
 
 const views = {
-  login: { id: "view-login", title: "Our Sanctuary", tab: null },
-  invite: { id: "view-invite", title: "邀请另一半", tab: null },
-  home: { id: "view-home", title: "Our Sanctuary", tab: "home" },
-  album: { id: "view-album", title: "回忆", tab: "album" },
-  post: { id: "view-post", title: "发布回忆", tab: null },
-  me: { id: "view-me", title: "我的", tab: "me" }
+  login: { id: "view-login", titleKey: "app.brand", tab: null },
+  invite: { id: "view-invite", titleKey: "nav.invite", tab: null },
+  home: { id: "view-home", titleKey: "app.brand", tab: "home" },
+  album: { id: "view-album", titleKey: "nav.album", tab: "album" },
+  post: { id: "view-post", titleKey: "nav.post", tab: null },
+  me: { id: "view-me", titleKey: "nav.me", tab: "me" }
 }
 
 function normalizeHash(hash) {
@@ -39,9 +40,8 @@ function setView(name) {
   const nav = document.querySelector("nav")
   nav.classList.toggle("hidden", name === "login" || name === "post" || name === "invite")
 
-  setHeaderTitle(views[name].title)
+  setHeaderTitle(t(views[name].titleKey))
   setActiveTab(views[name].tab)
-  setLogoutVisible(name !== "login" && name !== "post")
 }
 
 export function navigate(hash) {
@@ -55,6 +55,8 @@ const ctx = {
   viewer: createViewer()
 }
 
+initI18n()
+
 initLoginView(ctx)
 initInviteView(ctx)
 initHomeView(ctx)
@@ -66,22 +68,11 @@ function isAuthed() {
   return Boolean(tokenStore.get())
 }
 
-function onLogout() {
+export function onLogout() {
   clearAuth()
-  toast("已退出登录", { tone: "success" })
+  toast(t("toast.logout"), { tone: "success" })
   navigate("#login")
 }
-
-document.getElementById("settingsBtn").addEventListener("click", async (e) => {
-  e.preventDefault()
-  const ok = await confirmModal({
-    title: "设置",
-    body: "要退出登录吗？",
-    okText: "退出",
-    cancelText: "取消"
-  })
-  if (ok) onLogout()
-})
 
 const composeBtn = document.getElementById("composeBtn")
 if (composeBtn) {
@@ -108,7 +99,7 @@ async function onRoute() {
     if (name === "post") await ctx.post?.refresh?.()
     if (name === "me") await ctx.me?.refresh?.()
   } catch (e) {
-    toast(e.message || "加载失败", { tone: "error" })
+    toast(e.message || t("toast.loadFail"), { tone: "error" })
   }
 }
 
@@ -119,3 +110,7 @@ if (!location.hash) {
 }
 
 onRoute()
+
+onLocaleChange(() => {
+  onRoute()
+})

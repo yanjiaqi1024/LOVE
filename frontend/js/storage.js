@@ -62,6 +62,18 @@ export const settingsStore = {
   }
 }
 
+export const localeStore = {
+  get() {
+    return localStorage.getItem(STORAGE_KEYS.locale) || ""
+  },
+  set(locale) {
+    localStorage.setItem(STORAGE_KEYS.locale, locale)
+  },
+  clear() {
+    localStorage.removeItem(STORAGE_KEYS.locale)
+  }
+}
+
 export const cacheStore = {
   getProfile() {
     const raw = localStorage.getItem(STORAGE_KEYS.profileCache)

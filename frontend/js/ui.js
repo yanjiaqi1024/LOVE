@@ -9,6 +9,10 @@ function el(tag, attrs = {}, children = []) {
   return node
 }
 
+let headerBrand = { name: "", logoUrl: "" }
+
+import { onLocaleChange, t } from "./i18n.js"
+
 export function toast(message, { tone = "info", ms = 2200 } = {}) {
   const root = document.getElementById("toastRoot")
   const wrap = el("div", { class: "mx-auto max-w-md px-4 mt-2 pointer-events-none" })
@@ -29,14 +33,34 @@ export function toast(message, { tone = "info", ms = 2200 } = {}) {
   }, ms)
 }
 
-export function setHeaderTitle(title) {
-  const node = document.getElementById("headerTitle")
-  node.textContent = title || "Our Sanctuary"
+export function setHeaderGender(gender) {
+  const g = String(gender || "").trim()
+  const node = document.getElementById("headerGenderIcon")
+  if (!node) return
+  if (!g) {
+    node.classList.add("hidden")
+    node.textContent = ""
+    return
+  }
+  node.classList.remove("hidden")
+  node.textContent = g === "女" ? "female" : g === "男" ? "male" : "wc"
 }
 
-export function setLogoutVisible(v) {
-  const btn = document.getElementById("settingsBtn")
-  btn.classList.toggle("hidden", !v)
+export function setHeaderBrand({ name = "", logoUrl = "" } = {}) {
+  headerBrand = { name: String(name || ""), logoUrl: String(logoUrl || "") }
+  const titleNode = document.getElementById("headerTitle")
+  if (titleNode) titleNode.textContent = headerBrand.name.trim() || t("app.brand")
+  const img = document.getElementById("headerAvatarImg")
+  if (img) {
+    const u = headerBrand.logoUrl.trim()
+    if (u) img.setAttribute("src", u)
+  }
+}
+
+export function setHeaderTitle(title) {
+  const node = document.getElementById("headerTitle")
+  const brand = headerBrand?.name?.trim()
+  node.textContent = brand || title || t("app.brand")
 }
 
 export function setActiveTab(tab) {
@@ -46,7 +70,7 @@ export function setActiveTab(tab) {
   }
 }
 
-export function confirmModal({ title = "确认", body = "确定要继续吗？", okText = "确定", cancelText = "取消" } = {}) {
+export function confirmModal({ title = t("modal.confirmTitle"), body = "", okText = t("modal.ok"), cancelText = t("modal.cancel") } = {}) {
   const root = document.getElementById("modalRoot")
   const titleEl = document.getElementById("modalTitle")
   const bodyEl = document.getElementById("modalBody")
@@ -136,4 +160,171 @@ export function viewer() {
   root.addEventListener("touchend", onTouchEnd, { passive: true })
 
   return { show, hide }
+}
+
+export function enhanceGenderSelect(selectEl) {
+  if (!selectEl) return
+  if (selectEl.dataset.enhanced === "1") return
+  selectEl.dataset.enhanced = "1"
+
+  const originalParent = selectEl.parentElement
+  const wrapper = document.createElement("div")
+  wrapper.className = "relative"
+  originalParent.insertBefore(wrapper, selectEl)
+  wrapper.appendChild(selectEl)
+
+  selectEl.classList.add("sr-only")
+
+  const trigger = document.createElement("button")
+  trigger.type = "button"
+  trigger.className =
+    "w-full h-12 px-4 bg-surface-container-highest rounded-md flex items-center justify-between shadow-[0px_4px_12px_rgba(120,85,94,0.04)] border border-outline-variant/10 active:scale-[0.99] transition-all"
+
+  const triggerText = document.createElement("span")
+  triggerText.className = "text-on-surface font-medium"
+
+  const triggerIcon = document.createElement("span")
+  triggerIcon.className = "material-symbols-outlined text-primary text-xl"
+  triggerIcon.textContent = "favorite"
+
+  trigger.appendChild(triggerText)
+  trigger.appendChild(triggerIcon)
+
+  const menu = document.createElement("div")
+  menu.className =
+    "absolute top-full left-0 w-full bg-surface-container-lowest rounded-b-lg shadow-[0px_12px_32px_rgba(120,85,94,0.08)] overflow-hidden z-10 border border-outline-variant/10 border-t-0 hidden"
+  const menuInner = document.createElement("div")
+  menuInner.className = "py-2"
+  menu.appendChild(menuInner)
+
+  wrapper.appendChild(trigger)
+  wrapper.appendChild(menu)
+
+  let isOpen = false
+
+  function labelForValue(v) {
+    const s = String(v || "")
+    if (!s) return t("gender.unset")
+    if (s === "男") return t("gender.male")
+    if (s === "女") return t("gender.female")
+    return s
+  }
+
+  function close() {
+    if (!isOpen) return
+    isOpen = false
+    menu.classList.add("hidden")
+    trigger.classList.remove("rounded-t-lg")
+    trigger.classList.add("rounded-md")
+  }
+
+  function open() {
+    if (isOpen) return
+    isOpen = true
+    menu.classList.remove("hidden")
+    trigger.classList.remove("rounded-md")
+    trigger.classList.add("rounded-t-lg")
+  }
+
+  function syncTrigger() {
+    const v = String(selectEl.value || "")
+    triggerText.textContent = labelForValue(v)
+    if (v) {
+      triggerText.classList.remove("text-on-surface-variant")
+      triggerText.classList.add("text-primary")
+      triggerIcon.style.fontVariationSettings = "'FILL' 1"
+      triggerIcon.classList.remove("opacity-50")
+    } else {
+      triggerText.classList.add("text-on-surface-variant")
+      triggerText.classList.remove("text-primary")
+      triggerIcon.style.fontVariationSettings = "'FILL' 0"
+      triggerIcon.classList.add("opacity-50")
+    }
+  }
+
+  function rebuildMenu() {
+    menuInner.innerHTML = ""
+    const opts = Array.from(selectEl.options || []).map((o) => ({ value: o.value, label: o.textContent || "" }))
+    const normalized = opts
+      .filter((it) => it.value !== "")
+      .concat(opts.find((it) => it.value === "") || { value: "", label: t("gender.unset") })
+
+    for (const it of normalized) {
+      const row = document.createElement("div")
+      row.className =
+        "px-4 py-3 flex items-center justify-between text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer group relative"
+      row.setAttribute("role", "option")
+      row.dataset.value = it.value
+
+      const label = document.createElement("span")
+      label.className = "text-sm font-medium group-hover:text-primary transition-colors"
+      label.textContent = labelForValue(it.value || it.label)
+
+      const done = document.createElement("span")
+      done.className = "material-symbols-outlined text-sm hidden"
+      done.textContent = "done"
+
+      const bar = document.createElement("div")
+      bar.className = "absolute left-0 w-1 h-6 bg-primary rounded-r-full hidden"
+
+      row.appendChild(label)
+      row.appendChild(done)
+      row.appendChild(bar)
+
+      row.addEventListener("click", (e) => {
+        e.preventDefault()
+        selectEl.value = it.value
+        selectEl.dispatchEvent(new Event("change", { bubbles: true }))
+        syncTrigger()
+        rebuildMenu()
+        close()
+      })
+
+      if (String(selectEl.value || "") === String(it.value || "")) {
+        row.classList.add("bg-primary-container/40", "text-primary")
+        label.classList.remove("group-hover:text-primary")
+        label.classList.add("font-semibold", "text-primary")
+        done.classList.remove("hidden")
+        bar.classList.remove("hidden")
+      }
+
+      menuInner.appendChild(row)
+    }
+  }
+
+  trigger.addEventListener("click", (e) => {
+    e.preventDefault()
+    if (isOpen) close()
+    else open()
+  })
+
+  document.addEventListener(
+    "click",
+    (e) => {
+      if (!isOpen) return
+      if (wrapper.contains(e.target)) return
+      close()
+    },
+    true
+  )
+
+  window.addEventListener("keydown", (e) => {
+    if (!isOpen) return
+    if (e.key !== "Escape") return
+    e.preventDefault()
+    close()
+  })
+
+  selectEl.addEventListener("change", () => {
+    syncTrigger()
+    rebuildMenu()
+  })
+
+  syncTrigger()
+  rebuildMenu()
+
+  onLocaleChange(() => {
+    syncTrigger()
+    rebuildMenu()
+  })
 }

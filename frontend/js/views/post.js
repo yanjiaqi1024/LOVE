@@ -1,4 +1,5 @@
 import { api } from "../api.js"
+import { t } from "../i18n.js"
 import { cacheStore } from "../storage.js"
 import { confirmModal, toast } from "../ui.js"
 
@@ -54,8 +55,8 @@ export function initPostView(ctx) {
     locating = Boolean(v)
     if (locationBtn) locationBtn.disabled = locating || busy
     if (locationBtn) locationBtn.classList.toggle("opacity-60", locating || busy)
-    if (locationText && locating) locationText.textContent = "定位中..."
-    if (locationText && !locating) locationText.textContent = location || "选择当前位置"
+    if (locationText && locating) locationText.textContent = t("post.locationLocating")
+    if (locationText && !locating) locationText.textContent = location || t("post.locationChoose")
   }
 
   function clearAllMedia() {
@@ -76,12 +77,17 @@ export function initPostView(ctx) {
     addPhotoBtn.className =
       "aspect-square rounded-xl bg-primary-container/30 flex flex-col items-center justify-center border-2 border-dashed border-primary-container hover:bg-primary-container/50 transition-all group"
     addPhotoBtn.innerHTML =
-      '<span class="material-symbols-outlined text-primary text-3xl mb-1 group-hover:scale-110 transition-transform">add_a_photo</span><span class="text-[10px] font-bold text-on-primary-container">添加图片</span>'
+      `<span class="material-symbols-outlined text-primary text-3xl mb-1 group-hover:scale-110 transition-transform">add_a_photo</span><span class="text-[10px] font-bold text-on-primary-container">${t("post.addPhoto")}</span>`
     addPhotoBtn.addEventListener("click", async (e) => {
       e.preventDefault()
       if (busy) return
       if (mode === "video" && video) {
-        const ok = await confirmModal({ title: "切换为图片？", body: "当前已选择视频，切换会清空视频。", okText: "切换", cancelText: "取消" })
+        const ok = await confirmModal({
+          title: t("post.switchToPhoto.title"),
+          body: t("post.switchToPhoto.body"),
+          okText: t("post.switchOk"),
+          cancelText: t("modal.cancel")
+        })
         if (!ok) return
         clearAllMedia()
       }
@@ -92,12 +98,17 @@ export function initPostView(ctx) {
     addVideoBtn.className =
       "aspect-square rounded-xl bg-secondary-container/30 flex flex-col items-center justify-center border-2 border-dashed border-secondary-container hover:bg-secondary-container/50 transition-all group"
     addVideoBtn.innerHTML =
-      '<span class="material-symbols-outlined text-secondary text-3xl mb-1 group-hover:scale-110 transition-transform">videocam</span><span class="text-[10px] font-bold text-on-secondary-container">添加视频</span>'
+      `<span class="material-symbols-outlined text-secondary text-3xl mb-1 group-hover:scale-110 transition-transform">videocam</span><span class="text-[10px] font-bold text-on-secondary-container">${t("post.addVideo")}</span>`
     addVideoBtn.addEventListener("click", async (e) => {
       e.preventDefault()
       if (busy) return
       if (mode === "images" && images.length) {
-        const ok = await confirmModal({ title: "切换为视频？", body: "当前已选择图片，切换会清空图片。", okText: "切换", cancelText: "取消" })
+        const ok = await confirmModal({
+          title: t("post.switchToVideo.title"),
+          body: t("post.switchToVideo.body"),
+          okText: t("post.switchOk"),
+          cancelText: t("modal.cancel")
+        })
         if (!ok) return
         clearAllMedia()
       }
@@ -200,10 +211,10 @@ export function initPostView(ctx) {
 
       const canGeo = Boolean(navigator?.geolocation?.getCurrentPosition)
       if (!canGeo) {
-        const next = window.prompt("输入位置（可选）", location || "")
+        const next = window.prompt(t("post.locPrompt"), location || "")
         if (next == null) return
         location = String(next).trim()
-        if (locationText) locationText.textContent = location || "选择当前位置"
+        if (locationText) locationText.textContent = location || t("post.locationChoose")
         return
       }
 
@@ -218,7 +229,7 @@ export function initPostView(ctx) {
         })
         const lat = pos?.coords?.latitude
         const lng = pos?.coords?.longitude
-        if (typeof lat !== "number" || typeof lng !== "number") throw new Error("定位失败")
+        if (typeof lat !== "number" || typeof lng !== "number") throw new Error(t("post.locFailMsg"))
 
         let label = ""
         try {
@@ -227,13 +238,13 @@ export function initPostView(ctx) {
 
         const fallback = `${lat.toFixed(5)}, ${lng.toFixed(5)}`
         location = label || fallback
-        toast(label ? "已获取位置" : "已获取坐标", { tone: "success" })
+        toast(label ? t("post.gotLocation") : t("post.gotCoords"), { tone: "success" })
       } catch (err) {
         const code = err?.code
-        if (code === 1) toast("定位权限被拒绝，可手动输入位置", { tone: "error" })
-        else toast("定位失败，可手动输入位置", { tone: "error" })
+        if (code === 1) toast(t("post.locDenied"), { tone: "error" })
+        else toast(t("post.locFail"), { tone: "error" })
 
-        const next = window.prompt("输入位置（可选）", location || "")
+        const next = window.prompt(t("post.locPrompt"), location || "")
         if (next != null) location = String(next).trim()
       } finally {
         setLocating(false)
@@ -248,7 +259,7 @@ export function initPostView(ctx) {
       const list = Array.from(files).filter((f) => (f.type || "").startsWith("image/"))
       if (!list.length) return
       if (list.length > 9) {
-        toast("最多选择 9 张照片", { tone: "error" })
+        toast(t("post.maxPhotos"), { tone: "error" })
         photoInput.value = ""
         return
       }
@@ -280,7 +291,7 @@ export function initPostView(ctx) {
       const content = (contentInput?.value || "").trim()
       const hasMedia = (mode === "images" && images.length) || (mode === "video" && video)
       if (!content && !hasMedia) {
-        toast("写点什么，或添加图片/视频", { tone: "error" })
+        toast(t("post.needContent"), { tone: "error" })
         contentInput?.focus?.()
         return
       }
@@ -300,16 +311,16 @@ export function initPostView(ctx) {
         }
 
         await api.createPost({ author: "your", content, location, media })
-        toast("已发布", { tone: "success" })
+        toast(t("post.published"), { tone: "success" })
 
         if (contentInput) contentInput.value = ""
         location = ""
-        if (locationText) locationText.textContent = "选择当前位置"
+        if (locationText) locationText.textContent = t("post.locationChoose")
         clearAllMedia()
         renderMedia()
         ctx.navigate("#album")
       } catch (err) {
-        toast(err.message || "发布失败", { tone: "error" })
+        toast(err.message || t("post.publishFail"), { tone: "error" })
       } finally {
         setBusy(false)
       }
