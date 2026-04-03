@@ -169,7 +169,7 @@ const MESSAGES = {
     "confirm.logout.body": "确定要退出当前账号吗？",
     "confirm.logout.ok": "退出",
 
-    "confirm.breakup.title": "分手",
+    "confirm.breakup.title": "解除绑定",
     "confirm.breakup.body": "是否结束这段关系？",
     "confirm.breakup.ok": "结束",
     "toast.breakupOk": "已解除情侣绑定",

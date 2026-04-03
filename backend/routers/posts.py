@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from urllib.parse import urlparse
 
@@ -47,13 +47,22 @@ def _safe_delete_post_file(url: str) -> None:
 
 
 def _to_dict(post: Post, media: list[PostMedia], *, viewer_user_id: int) -> dict:
+    def _iso_utc(dt: datetime | None) -> str | None:
+        if dt is None:
+            return None
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+        return dt.isoformat().replace("+00:00", "Z")
+
     return {
         "id": post.id,
         "author": post.author,
         "content": post.content,
         "location": post.location,
-        "createdAt": post.created_at,
-        "updatedAt": post.updated_at,
+        "createdAt": _iso_utc(post.created_at),
+        "updatedAt": _iso_utc(post.updated_at),
         "media": [{"id": m.id, "url": m.url, "kind": m.kind, "contentType": m.content_type} for m in media],
         "canDelete": bool(post.user_id) and int(post.user_id) == int(viewer_user_id),
     }
