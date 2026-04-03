@@ -86,6 +86,9 @@ export const cacheStore = {
   },
   setProfile(profile) {
     localStorage.setItem(STORAGE_KEYS.profileCache, JSON.stringify(profile || {}))
+  },
+  clearProfile() {
+    localStorage.removeItem(STORAGE_KEYS.profileCache)
   }
 }
 

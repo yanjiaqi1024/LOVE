@@ -166,6 +166,9 @@ export const api = {
   },
   async deletePost(id) {
     return request(`/api/posts/${id}`, { method: "DELETE" })
+  },
+  async breakupCouple() {
+    return request("/api/couples/breakup", { method: "POST" })
   }
 }
 

@@ -404,7 +404,7 @@
             </div>
 
             <div class="mt-10 flex flex-col items-center gap-4">
-              <button id="inviteGuideTitle" class="text-secondary text-sm font-semibold underline underline-offset-4 opacity-70 hover:opacity-100" type="button">开通说明</button>
+              <button id="inviteGuideTitle" class="text-secondary text-sm font-semibold underline underline-offset-4 opacity-70 hover:opacity-100" type="button" onclick="document.getElementById('guideModalRoot') && document.getElementById('guideModalRoot').classList.remove('hidden')">开通说明</button>
               <p id="inviteGuideBody" class="text-[10px] text-outline-variant font-medium text-center px-12 leading-relaxed">
                 您的隐私对我们至关重要。所有对话和照片均经过端到端加密保护。
               </p>
@@ -606,7 +606,7 @@
               <div class="w-28 h-28 rounded-xl overflow-hidden shadow-xl rotate-[-3deg] border-4 border-surface-container-lowest bg-primary-container">
                 <img id="meAvatarYourImg" class="w-full h-full object-cover" alt="Partner 1" />
               </div>
-              <div class="z-10 bg-primary-container text-on-primary-container p-3 rounded-full shadow-lg">
+              <div id="breakupBtn" class="z-10 bg-primary-container text-on-primary-container p-3 rounded-full shadow-lg cursor-pointer active:scale-95 transition-all duration-200" role="button" tabindex="0">
                 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
               </div>
               <div class="w-28 h-28 rounded-xl overflow-hidden shadow-xl rotate-[3deg] border-4 border-surface-container-lowest bg-tertiary-container">
@@ -858,7 +858,7 @@
         </section>
       </main>
 
-      <nav class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4 bg-[#fef8fa]/70 backdrop-blur-xl z-50 rounded-t-[3rem] shadow-[0px_-8px_24px_rgba(120,85,94,0.06)]">
+      <nav id="bottomNav" class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-8 pt-4 bg-[#fef8fa]/70 backdrop-blur-xl z-50 rounded-t-[3rem] shadow-[0px_-8px_24px_rgba(120,85,94,0.06)]">
         <a href="#home" id="tab-home" class="tab flex flex-col items-center justify-center rounded-full px-6 py-2 transition-all hover:scale-105 active:scale-90 duration-300">
           <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">home</span>
           <span class="font-label text-[10px] uppercase tracking-widest font-bold mt-1">Home</span>
@@ -916,6 +916,21 @@
                 保存
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="guideModalRoot" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-black/40" onclick="document.getElementById('guideModalRoot') && document.getElementById('guideModalRoot').classList.add('hidden')"></div>
+        <div class="absolute inset-0 flex items-end justify-center p-4">
+          <div class="w-full max-w-md rounded-xl bg-surface/95 border border-outline-variant/30 shadow-[0px_12px_32px_rgba(120,85,94,0.10)] backdrop-blur-xl p-4">
+            <div class="flex items-center justify-between gap-3">
+              <div id="guideModalTitle" class="font-headline font-bold text-primary">开通说明</div>
+              <button id="guideModalClose" class="w-10 h-10 rounded-full bg-surface-container-lowest border border-outline-variant/25 text-primary active:scale-95 transition-all duration-200 flex items-center justify-center" type="button" aria-label="Close" onclick="document.getElementById('guideModalRoot') && document.getElementById('guideModalRoot').classList.add('hidden')">
+                <span class="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+            <div id="guideModalBody" class="mt-4 text-sm text-secondary/90 leading-relaxed space-y-3"></div>
           </div>
         </div>
       </div>

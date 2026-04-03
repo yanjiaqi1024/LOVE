@@ -56,6 +56,19 @@ const MESSAGES = {
     "invite.shareLink": "分享链接",
     "invite.guide": "开通说明",
     "invite.privacy": "您的隐私对我们至关重要。所有对话和照片均经过端到端加密保护。",
+    "guide.title": "开通说明",
+    "guide.section.how": "如何开通",
+    "guide.section.data": "数据与隐私",
+    "guide.section.breakup": "解除关系",
+    "guide.step.1": "注册/登录：使用账号/手机号和密码登录情侣空间。",
+    "guide.step.2": "生成邀请：进入“邀请另一半”页面，点击“立即邀请我的另一半”，系统会生成邀请链接。",
+    "guide.step.3": "对方加入：把链接发给 TA，TA 打开链接后会带 invite 参数，登录/注册后自动绑定到同一个情侣关系。",
+    "guide.step.4": "开通完成：当情侣成员达到 2 人时，会自动进入首页并显示共享内容。",
+    "guide.data.1": "共享范围：双方的资料、打卡、纪念日、回忆/帖子、相册元数据等都按情侣关系共享。",
+    "guide.data.2": "仅两人可见：该空间的数据只对同一情侣关系内的成员展示。",
+    "guide.data.3": "媒体存储：头像/图片/视频会上传并通过 /media 访问。",
+    "guide.breakup.1": "你可以在“我的”页面点击中间爱心进行解除绑定，系统会二次确认“是否结束这段关系？”。",
+    "guide.breakup.2": "解除后会回到邀请页，情侣相关的页面和内容将不再展示，直到重新邀请绑定。",
 
     "home.sinceMet": "自相遇那天起",
     "home.days": "天",
@@ -155,6 +168,11 @@ const MESSAGES = {
     "confirm.logout.title": "退出登录",
     "confirm.logout.body": "确定要退出当前账号吗？",
     "confirm.logout.ok": "退出",
+
+    "confirm.breakup.title": "分手",
+    "confirm.breakup.body": "是否结束这段关系？",
+    "confirm.breakup.ok": "结束",
+    "toast.breakupOk": "已解除情侣绑定",
 
     "ann.modal.create": "新增纪念日",
     "ann.modal.edit": "编辑纪念日",
@@ -268,6 +286,19 @@ const MESSAGES = {
     "invite.shareLink": "Share link",
     "invite.guide": "Getting Started",
     "invite.privacy": "Your privacy matters. Chats and photos are protected with end‑to‑end encryption.",
+    "guide.title": "Getting Started",
+    "guide.section.how": "How it works",
+    "guide.section.data": "Data & privacy",
+    "guide.section.breakup": "End relationship",
+    "guide.step.1": "Sign in: Use your account/phone and password to sign in.",
+    "guide.step.2": "Create an invite: Go to the Invite page and tap “Invite my partner” to generate an invite link.",
+    "guide.step.3": "Partner joins: Send the link to your partner. Opening it carries an invite parameter, and signing in/signing up will bind you to the same couple.",
+    "guide.step.4": "Activated: When the couple has 2 members, the app automatically shows the Home view with shared content.",
+    "guide.data.1": "Shared scope: profile, check‑ins, anniversaries, posts/memories, and album metadata are shared within the same couple.",
+    "guide.data.2": "Only for you two: content is only shown to members of the same couple.",
+    "guide.data.3": "Media: avatars/photos/videos are uploaded and served under /media.",
+    "guide.breakup.1": "On the Me page, tap the heart between avatars to unbind. You’ll see a confirmation dialog.",
+    "guide.breakup.2": "After unbinding, you’ll return to the Invite page and couple content won’t be shown until you bind again.",
 
     "home.sinceMet": "Since the day we met",
     "home.days": "Days",
@@ -367,6 +398,11 @@ const MESSAGES = {
     "confirm.logout.title": "Sign out",
     "confirm.logout.body": "Sign out of this account?",
     "confirm.logout.ok": "Sign out",
+
+    "confirm.breakup.title": "Break up",
+    "confirm.breakup.body": "End this relationship?",
+    "confirm.breakup.ok": "End",
+    "toast.breakupOk": "Relationship ended",
 
     "ann.modal.create": "New Anniversary",
     "ann.modal.edit": "Edit Anniversary",
@@ -528,6 +564,37 @@ function setAttr(selector, attr, key) {
   el.setAttribute(attr, t(key))
 }
 
+function renderGuideBody() {
+  const root = document.getElementById("guideModalBody")
+  if (!root) return
+  root.innerHTML = ""
+
+  const makeTitle = (key) => {
+    const p = document.createElement("p")
+    p.className = "font-headline text-primary font-bold"
+    p.textContent = t(key)
+    return p
+  }
+
+  const makeList = (keys) => {
+    const ul = document.createElement("ul")
+    ul.className = "list-disc pl-5 space-y-2"
+    for (const k of keys) {
+      const li = document.createElement("li")
+      li.textContent = t(k)
+      ul.appendChild(li)
+    }
+    return ul
+  }
+
+  root.appendChild(makeTitle("guide.section.how"))
+  root.appendChild(makeList(["guide.step.1", "guide.step.2", "guide.step.3", "guide.step.4"]))
+  root.appendChild(makeTitle("guide.section.data"))
+  root.appendChild(makeList(["guide.data.1", "guide.data.2", "guide.data.3"]))
+  root.appendChild(makeTitle("guide.section.breakup"))
+  root.appendChild(makeList(["guide.breakup.1", "guide.breakup.2"]))
+}
+
 export function applyStaticI18n() {
   document.title = t("app.title")
 
@@ -595,6 +662,9 @@ export function applyStaticI18n() {
   setText("#inviteShareTitle", "invite.shareLink")
   setText("#inviteGuideTitle", "invite.guide")
   setText("#inviteGuideBody", "invite.privacy")
+
+  setText("#guideModalTitle", "guide.title")
+  renderGuideBody()
 
   setText("#homeSinceLabel", "home.sinceMet")
   setText("#homeDaysUnit", "home.days")

@@ -11,7 +11,7 @@ from sqlmodel import Session, select
 from .auth import get_current_user
 from .db import get_session, init_db
 from .models import User
-from .routers import album_meta, anniversaries, auth, checkin, invites, profile
+from .routers import album_meta, anniversaries, auth, checkin, couples, invites, profile
 from .routers import posts
 from .routers import uploads
 from .settings import MEDIA_DIR, ensure_dirs
@@ -49,6 +49,7 @@ def me(user=Depends(get_current_user), session: Session = Depends(get_session)):
 
 app.include_router(auth.router)
 app.include_router(invites.router)
+app.include_router(couples.router)
 app.include_router(profile.router)
 app.include_router(checkin.router)
 app.include_router(anniversaries.router)

@@ -1,4 +1,4 @@
-import { clearAuth } from "./api.js"
+import { api, clearAuth } from "./api.js"
 import { tokenStore } from "./storage.js"
 import { confirmModal, setActiveTab, setHeaderTitle, toast, viewer as createViewer } from "./ui.js"
 import { initI18n, onLocaleChange, t } from "./i18n.js"
@@ -88,6 +88,30 @@ async function onRoute() {
     setView("login")
     if (location.hash !== "#login") history.replaceState(null, "", "#login")
     return
+  }
+
+  if (!isAuthed()) {
+    setView("login")
+    if (location.hash !== "#login") history.replaceState(null, "", "#login")
+    return
+  }
+
+  if (target !== "login") {
+    try {
+      const me = await api.me()
+      const coupled = (me?.coupleMemberCount || 0) >= 2
+      if (!coupled && target !== "invite") {
+        setView("invite")
+        if (location.hash !== "#invite") history.replaceState(null, "", "#invite")
+        return
+      }
+    } catch (e) {
+      if (e?.status === 401) {
+        setView("login")
+        if (location.hash !== "#login") history.replaceState(null, "", "#login")
+        return
+      }
+    }
   }
 
   const name = target === "login" ? "login" : target

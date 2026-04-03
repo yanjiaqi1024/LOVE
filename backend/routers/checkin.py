@@ -12,6 +12,36 @@ from ..models import Checkin, User
 router = APIRouter(prefix="/api/checkins", tags=["checkins"])
 
 
+def _build_history(session: Session, user: User):
+    couple_id = user.couple_id
+    partner = None
+    if couple_id is not None:
+        partner = session.exec(
+            select(User).where(User.couple_id == couple_id).where(User.id != user.id).order_by(User.id.asc())
+        ).first()
+
+    user_ids = [user.id]
+    if partner is not None:
+        user_ids.append(partner.id)
+
+    rows = session.exec(select(Checkin.user_id, Checkin.day).where(Checkin.user_id.in_(user_ids))).all()
+
+    your_days = set()
+    partner_days = set()
+    for uid, day in rows:
+        if uid == user.id:
+            your_days.add(day)
+        else:
+            partner_days.add(day)
+
+    all_days = sorted(your_days.union(partner_days))
+    history: dict[str, dict[str, bool]] = {}
+    for d in all_days:
+        history[d.isoformat()] = {"your": d in your_days, "partner": d in partner_days}
+
+    return history
+
+
 def _summary(session: Session, user_id: int):
     rows = session.exec(select(Checkin.day).where(Checkin.user_id == user_id)).all()
     days = set(rows)
@@ -39,7 +69,9 @@ def get_summary(
     session: Session = Depends(get_session),
     user: User = Depends(get_current_user),
 ):
-    return _summary(session, user.id)
+    s = _summary(session, user.id)
+    s["history"] = _build_history(session, user)
+    return s
 
 
 @router.get("/pair")
@@ -72,4 +104,6 @@ def checkin_today(
 
     session.add(Checkin(user_id=user.id, day=today, created_at=datetime.utcnow()))
     session.commit()
-    return _summary(session, user.id)
+    s = _summary(session, user.id)
+    s["history"] = _build_history(session, user)
+    return s

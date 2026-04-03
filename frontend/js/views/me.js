@@ -142,6 +142,7 @@ export function initMeView(ctx) {
   const anniversaryModalOk = document.getElementById("anniversaryModalOk")
 
   const meLogoutBtn = document.getElementById("meLogoutBtn")
+  const breakupBtn = document.getElementById("breakupBtn")
   if (inputYourGender) enhanceGenderSelect(inputYourGender)
   if (inputPartnerGender) enhanceGenderSelect(inputPartnerGender)
   if (inputYourGender) {
@@ -717,6 +718,36 @@ export function initMeView(ctx) {
         cancelText: t("modal.cancel")
       })
       if (ok) onLogout()
+    })
+  }
+
+  async function onBreakup() {
+    const ok = await confirmModal({
+      title: t("confirm.breakup.title"),
+      body: t("confirm.breakup.body"),
+      okText: t("confirm.breakup.ok"),
+      cancelText: t("modal.cancel")
+    })
+    if (!ok) return
+    try {
+      await api.breakupCouple()
+      cacheStore.clearProfile()
+      toast(t("toast.breakupOk"), { tone: "success" })
+      ctx.navigate("#invite")
+    } catch (err) {
+      toast(err.message || t("toast.loadFail"), { tone: "error" })
+    }
+  }
+
+  if (breakupBtn) {
+    breakupBtn.addEventListener("click", (e) => {
+      e.preventDefault()
+      onBreakup()
+    })
+    breakupBtn.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" && e.key !== " ") return
+      e.preventDefault()
+      onBreakup()
     })
   }
 

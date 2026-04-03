@@ -34,6 +34,8 @@ async function copyText(text) {
 export function initInviteView() {
   const btn = document.getElementById("inviteShareBtn")
   const linkEl = document.getElementById("inviteLinkText")
+  const guideBtn = document.getElementById("inviteGuideTitle")
+  const guideClose = document.getElementById("guideModalClose")
 
   if (!btn) return
 
@@ -72,6 +74,52 @@ export function initInviteView() {
       toast(err?.message || t("invite.fail"), { tone: "error" })
     }
   })
+
+  function openGuide() {
+    const root = document.getElementById("guideModalRoot")
+    if (!root) return
+    root.classList.remove("hidden")
+  }
+
+  function closeGuide() {
+    const root = document.getElementById("guideModalRoot")
+    if (!root) return
+    root.classList.add("hidden")
+  }
+
+  if (guideBtn) {
+    guideBtn.dataset.boundGuide = "1"
+    guideBtn.addEventListener("click", (e) => {
+      e.preventDefault()
+      openGuide()
+    })
+  }
+
+  if (guideClose) {
+    guideClose.addEventListener("click", (e) => {
+      e.preventDefault()
+      closeGuide()
+    })
+  }
+
+  const guideRoot = document.getElementById("guideModalRoot")
+  if (guideRoot) {
+    guideRoot.addEventListener("click", (e) => {
+      const backdrop = guideRoot.firstElementChild
+      if (e.target === guideRoot || e.target === backdrop) closeGuide()
+    })
+  }
+
+  if (!globalThis.__guideEscBound) {
+    globalThis.__guideEscBound = true
+    window.addEventListener("keydown", (e) => {
+      if (e.key !== "Escape") return
+      const root = document.getElementById("guideModalRoot")
+      if (!root || root.classList.contains("hidden")) return
+      e.preventDefault()
+      root.classList.add("hidden")
+    })
+  }
 
   refresh().catch(() => {})
 }
