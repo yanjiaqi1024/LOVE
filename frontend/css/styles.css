@@ -85,3 +85,35 @@ body {
     opacity: 1;
   }
 }
+
+.newfooter-bottom {
+  margin-top: 0.75rem;
+  font-size: 12px;
+  line-height: 1.4;
+  color: rgba(120, 85, 94, 0.75);
+}
+
+.dp_flex_center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.newfooter-bottom a {
+  color: rgba(120, 85, 94, 0.85);
+  text-decoration: none;
+}
+
+.newfooter-bottom a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.image10 {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex: 0 0 auto;
+}
