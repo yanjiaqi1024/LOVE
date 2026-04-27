@@ -101,6 +101,21 @@ body {
   gap: 0.5rem;
 }
 
+.newfooter-bottom .beian-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
+.newfooter-bottom .beian-link .image10 {
+  display: block;
+}
+
+.newfooter-bottom span {
+  white-space: nowrap;
+}
+
 .newfooter-bottom a {
   color: rgba(120, 85, 94, 0.85);
   text-decoration: none;
